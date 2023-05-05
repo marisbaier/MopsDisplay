@@ -38,11 +38,8 @@ def getDepartures():
         try:
             response = [requests.get("https://v5.bvg.transport.rest/stops/900193002/departures?direction=900193001&results=20&suburban=true&tram=false&bus=false&when=in+{0}+minutes".format(i)).json() for i in ["5","9","13","17","21","25","29","33"]]
         except Exception as errormsg:
-            print(errormsg)
             continue
         else:
-            print(response[0][0])
-            print(type(response[0]))
             Abfahrten=[]
             tripIds=[]
             for i in response:
