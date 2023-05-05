@@ -2,11 +2,9 @@ import tkinter as tk
 from PIL import ImageTk, Image
 import requests
 from datetime import datetime
-import numpy as np
 
 root = tk.Tk()
 root.attributes("-fullscreen", True)
-root.configure(background='#ffffff')
 canvas = tk.Canvas()
 
 imagenames = ['S9', 'S8', 'S85', 'S45', 'S46']
@@ -43,6 +41,8 @@ def getDepartures():
             print(errormsg)
             continue
         else:
+            print(response[0][0])
+            print(type(response[0]))
             Abfahrten=[]
             tripIds=[]
             for i in response:
