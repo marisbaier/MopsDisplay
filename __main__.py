@@ -41,8 +41,8 @@ root.attributes("-fullscreen", True)
 canvas = tk.Canvas()
 
 imagenames = ['S9', 'S8', 'S85', 'S45', 'S46']
-Empty = ImageTk.PhotoImage(Image.open('src/images/Empty.png').resize((1,1)))
-images = {imagename:ImageTk.PhotoImage(Image.open('src/images/'+imagename+'.png').resize((80,40))) for imagename in imagenames}
+Empty = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/Empty.png').resize((1,1)))
+images = {imagename:ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/'+imagename+'.png').resize((80,40))) for imagename in imagenames}
 
 displayedobjects = []
 
@@ -59,8 +59,8 @@ def mainloop():
             i += add
             linename = Sbahn['line']['name']
             lineimage = images[linename]
-            wheninminutes = wheninminutes(Sbahn)
-            displayedobjects.append(SbahnObject(lineimage,Sbahn['direction'],wheninminutes,hintimage=Empty,ypos=100+i*60))
+            inminutes = wheninminutes(Sbahn)
+            displayedobjects.append(SbahnObject(lineimage,Sbahn['direction'],inminutes,hintimage=Empty,ypos=100+i*60))
 
     for i,displayedobject in enumerate(displayedobjects):
 
