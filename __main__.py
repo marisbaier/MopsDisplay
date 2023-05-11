@@ -1,5 +1,5 @@
 '''
-This python script is used to display information on a screen
+This python script is used to display information on a screen:)
 
 Author: Maris Baier
 '''
@@ -68,14 +68,17 @@ root.attributes("-fullscreen", True)
 canvas = tk.Canvas()
 
 Empty = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/Empty.png').resize((1,1)))
+HUlogoimage = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/HUberlin-logo.png').resize((100,100)))
 imagenames = ['S9', 'S8', 'S85', 'S45', 'S46']
 images = {imagename:ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/'+imagename+'.png').resize((80,40))) for imagename in imagenames}
 
 displayedobjects = []
 
 n=0
-canvas.create_text(640, 55, text='min', font=('Helvetica',25,'bold'))
+canvas.create_text(640, 55, text='min', font=('Helvetica',25,'bold'))           # min sign
 canvas.pack(fill=tk.BOTH, expand=True)
+bluecolorbox = canvas.create_rectangle(820, 0, 1200, 800, fill='light blue', outline='light blue')
+HUlogo = canvas.create_image(900, 100, image=HUlogoimage)
 
 def mainloop():
     Sbahnabfahrten = getDepartures()
