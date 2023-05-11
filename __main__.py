@@ -68,7 +68,7 @@ root.attributes("-fullscreen", True)
 canvas = tk.Canvas()
 
 Empty = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/Empty.png').resize((1,1)))
-HUlogoimage = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/HUberlin-logo.png').resize((100,100)))
+HUlogoimage = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/Huberlin-logo.png').resize((100,100)))
 imagenames = ['S9', 'S8', 'S85', 'S45', 'S46']
 images = {imagename:ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/'+imagename+'.png').resize((80,40))) for imagename in imagenames}
 
@@ -78,7 +78,11 @@ n=0
 canvas.create_text(640, 55, text='min', font=('Helvetica',25,'bold'))           # min sign
 canvas.pack(fill=tk.BOTH, expand=True)
 bluecolorbox = canvas.create_rectangle(820, 0, 1200, 800, fill='light blue', outline='light blue')
-HUlogo = canvas.create_image(900, 100, image=HUlogoimage)
+HUlogo = canvas.create_image(930, 100, image=HUlogoimage)
+canvas.create_text(930, 300, text='Nächste Veranstaltungen:', font=('Helvetica', 18,'bold'), anchor='w')
+canvas.create_text(900, 350, text='Morgen Auftaktsparty ab 17 Uhr!', font=('Helvetica', 12,'bold'), anchor='w')
+canvas.create_text(900, 375, text='22. Mai  Schachturnier', font=('Helvetica', 12,'bold'), anchor='w')
+canvas.create_text(900, 400, text='30. Mai  Mops Geburtstag', font=('Helvetica', 12,'bold'), anchor='w')
 
 def mainloop():
     Sbahnabfahrten = getDepartures()
