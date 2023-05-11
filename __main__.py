@@ -27,8 +27,8 @@ class SbahnObject:
         except:
             lineimage = Empty
         self.image = canvas.create_image(130, ypos, image = lineimage)
-        self.direction = canvas.create_text(230, ypos, text=requestjson['direction'],font=('Helvetica',30,'bold'), anchor='w')
-        self.when = canvas.create_text(640, ypos, text=wheninminutes(requestjson),font=('Helvetica',30,'bold'), anchor='w')
+        self.direction = canvas.create_text(230, ypos, text=requestjson['direction'],font=('Helvetica',20,'bold'), anchor='w')
+        self.when = canvas.create_text(480, ypos, text=wheninminutes(requestjson),font=('Helvetica',20,'bold'), anchor='w')
 
     def change(self, image, direction, when):
         canvas.itemconfig(self.image, image = image)
@@ -70,19 +70,20 @@ canvas = tk.Canvas()
 Empty = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/Empty.png').resize((1,1)))
 HUlogoimage = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/Huberlin-logo.png').resize((100,100)))
 imagenames = ['S9', 'S8', 'S85', 'S45', 'S46']
-images = {imagename:ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/'+imagename+'.png').resize((80,40))) for imagename in imagenames}
+images = {imagename:ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/'+imagename+'.png').resize((40,20))) for imagename in imagenames}
 
 displayedobjects = []
 
 n=0
-canvas.create_text(640, 55, text='min', font=('Helvetica',25,'bold'))           # min sign
+canvas.create_text(480, 55, text='min', font=('Helvetica',15,'bold'))           # min sign
 canvas.pack(fill=tk.BOTH, expand=True)
-bluecolorbox = canvas.create_rectangle(780, 0, 1200, 800, fill='light blue', outline='light blue')
-HUlogo = canvas.create_image(880, 100, image=HUlogoimage)
-canvas.create_text(800, 300, text='Nächste Veranstaltungen:', font=('Helvetica', 18,'bold'), anchor='w')
-canvas.create_text(800, 350, text='Morgen Auftaktsparty ab 17 Uhr!', font=('Helvetica', 12,'bold'), anchor='w')
-canvas.create_text(800, 375, text='22. Mai  Schachturnier', font=('Helvetica', 12,'bold'), anchor='w')
-canvas.create_text(800, 400, text='30. Mai  Mops Geburtstag', font=('Helvetica', 12,'bold'), anchor='w')
+bluecolorbox = canvas.create_rectangle(580, 0, 1200, 800, fill='light blue', outline='light blue')
+HUlogo = canvas.create_image(700, 100, image=HUlogoimage)
+canvas.create_text(600, 300, text='Nächste Veranstaltungen:', font=('Helvetica', 18,'bold'), anchor='nw')
+canvas.create_text(600, 350, text='Morgen Auftaktsparty ab 17 Uhr!', font=('Helvetica', 12,'bold'), anchor='nw')
+canvas.create_text(600, 375, text='22. Mai   Schachturnier', font=('Helvetica', 12,'bold'), anchor='nw')
+canvas.create_text(600, 400, text='30. Mai   Mops Geburtstag', font=('Helvetica', 12,'bold'), anchor='nw')
+canvas.create_text(600, 425, text='''14. Juni  Hörsaalkino Special:\n         "Jim Knopf und Lukas\n           der Lokomotivführer"\n       mit Vortrag von Dr. Lohse''', font=('Helvetica', 12,'bold'), anchor='nw')
 
 def mainloop():
     Sbahnabfahrten = getDepartures()
@@ -91,7 +92,7 @@ def mainloop():
         #print(len(displayedobjects))
         for i,Sbahn in enumerate(Sbahnabfahrten[len(displayedobjects):-1]):
             i += add
-            displayedobjects.append(SbahnObject(Sbahn, ypos=100+i*60))
+            displayedobjects.append(SbahnObject(Sbahn, ypos=100+i*40))
 
     for i,displayedobject in enumerate(displayedobjects):
 
