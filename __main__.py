@@ -21,10 +21,11 @@ FONT_DEFAULT = ("Helvetica", 20, "bold")
 FONT_TITLE_2 = ("Helvetica", 28, "bold")
 
 class OutgoingConnection:
+    """
+    Displays departure information for a single mode of transport at a single station.
+    """
     def __init__(self, requestjson, ypos):
         """
-        Displays departure information for a single mode of transport.
-
         Upon creation, checks for a correspanding lineimage stored.
         If there"s none, loads an empty image.
 
@@ -41,17 +42,23 @@ class OutgoingConnection:
             direct = direct[0:35] + "..."
             print(direct)
 
-        self.when_int = when_in_minutes(requestjson)
+        self.when_int = calculate_remaining_time(requestjson)
 
         self.direction = canvas.create_text(75+40, ypos, text=direct, font=FONT_DEFAULT, anchor="w")
         self.when = canvas.create_text(540, ypos, text=self.when_int, font=FONT_DEFAULT, anchor="e")
 
     def change(self, image, direction, when):
+        """
+        Updates the displayed information on the canvas with the provided parameters.
+        """
         canvas.itemconfig(self.image, image = image)
         canvas.itemconfig(self.direction, text=direction)
         canvas.itemconfig(self.when, text=when)
 
 class Station:
+    """
+    Displays realtime departure information for a single station.
+    """
     def __init__(self, config, display_offset):
         self.name = config["name"]
         self.station_id = config["station_id"]
@@ -66,51 +73,70 @@ class Station:
 
         self.departures = []
 
-        self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor="w"))
+        self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor="w")) # pylint: disable=line-too-long
         self.departure_list()
 
 
     def departure_list(self):
-        departures = get_departures(self.get_url(), self.max_departures)
+        """
+        Diffs the displayed departure information on the canvas
+        with the information provided by the API.
+
+        If there are more departures than displayed, adds new ones.
+        If there are less departures than displayed, removes the excess.
+
+        This is done regularly to keep the displayed information up to date.
+        """
+        departures = fetch_departures(self.get_url(), self.max_departures)
         if len(departures)>len(self.departures):
             add = len(self.departures)
             for i,departure in enumerate(departures[len(self.departures):-1]):
                 i += add
-                self.departures.append(OutgoingConnection(departure, ypos=100+(i+self.display_offset)*40))
+                connection = OutgoingConnection(departure, ypos=100+(i+self.display_offset)*40)
+                self.departures.append(connection)
 
         for i,displayedobject in enumerate(self.departures[1:]):
             if i<len(departures):
                 departure = departures[i]
                 linename = departure["line"]["name"]
-                inminutes = when_in_minutes(departure)
-                
+                time_remaining = calculate_remaining_time(departure)
+
                 direct = departure["direction"]
-                
+
                 if len(direct) > 35:
                     direct = direct[:35] + "..."
 
 
                 try:
-                    displayedobject.change(images[linename],direct,inminutes)
+                    displayedobject.change(images[linename], direct, time_remaining)
                 except KeyError:
                     if re.match("[0-9]{3}", linename) or departure["line"]["adminCode"] == "SEV":
-                        displayedobject.change(images["164"],direct,inminutes)
+                        displayedobject.change(images["164"], direct, time_remaining)
                     else:
-                        displayedobject.change(empty,direct,inminutes)
-                if inminutes<self.min_time_needed:
+                        displayedobject.change(empty, direct, time_remaining)
+                if time_remaining < self.min_time_needed:
                     canvas.itemconfig(displayedobject.when, fill="red")
                 else:
                     canvas.itemconfig(displayedobject.when, fill="white")
             else:
                 displayedobject.change(empty,"","")
-    
-    def get_dep_list_length(self):
+
+    def get_departure_count(self):
+        """
+        Returns the number of departures currently displayed.
+        """
         return len(self.departures)
 
     def get_url(self):
-        return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"
+        """
+        Constructs the URL for the API request.
+        """
+        return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}" # pylint: disable=line-too-long
 
-def get_departures(url, max_departures):
+def fetch_departures(url, max_departures):
+    """
+    Requests the API for departure information.
+    """
     while True:
         try:
             response = requests.get(url, timeout=30000).json()
@@ -119,14 +145,22 @@ def get_departures(url, max_departures):
         else:
             departures = []
             trip_ids = []
-            for i in response:
-                if i["when"] is not None and i["tripId"] not in trip_ids and len(departures) <= max_departures:
-                    departures.append(i)
-                    trip_ids.append(i["tripId"])
+            for departure in response:
+                trip_id = departure["tripId"]
+
+                exists = trip_id in trip_ids
+                is_scheduled = departure["when"] is not None
+                if is_scheduled and not exists and len(departures) <= max_departures:
+                    departures.append(departure)
+                    trip_ids.append(trip_id)
             break
     return departures
 
-def when_in_minutes(json):
+def calculate_remaining_time(json):
+    """
+    Calculates the remaining time until departure.
+    Returns the time in minutes.
+    """
     departure = dateparser.parse(json["when"])
 
     difference = departure - datetime.now(departure.tzinfo)
@@ -135,40 +169,50 @@ def when_in_minutes(json):
     return int(difference)
 
 def get_images():
+    """
+    Returns a list of the names of all images in the src/images folder.
+    """
     out = []
 
     # https://stackoverflow.com/a/3430395
     root_path = pathlib.Path(__file__).parent.resolve()
 
-    for f in os.scandir(root_path.joinpath("src/images/")):
-        if re.match(r"S?[0-9]+\.png", f.name):
-            out.append(f.name.split(".")[0])
+    for file in os.scandir(root_path.joinpath("src/images/")):
+        if re.match(r"S?[0-9]+\.png", file.name):
+            out.append(file.name.split(".")[0])
 
     return out
 
 def setup(ctx):
+    """
+    Sets up the initial canvas state.
+    This includes the background, the logo and the event information.
+    """
     ctx.create_rectangle(580, 0, 1200, 800, fill="#165096", outline="#165096")
     ctx.create_image(700, 100, image=hu_logo_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
     event_display_offset = 300
     for event_config in event_configs:
-        ctx.create_text(650, event_display_offset, text=event_config["date"], font=FONT_DEFAULT, anchor="nw")
+        ctx.create_text(650, event_display_offset, text=event_config["date"], font=FONT_DEFAULT, anchor="nw") # pylint: disable=line-too-long
 
         for line in event_config["description"]:
             ctx.create_text(750, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw")
             event_display_offset += 25
-        
+
         event_display_offset += 5
 
 def load_image(acc, name):
+    """
+    Loads an image for one of the connections from the src/images folder.
+    """
     image = Image.open(image_path.joinpath(f"{name}.png"))
     if name.startswith("S"):
         image.thumbnail((40,40), Image.LANCZOS)
     else:
         image.thumbnail((30,30), Image.LANCZOS)
     image = ImageTk.PhotoImage(image)
-    
+
     return {**acc, **{name: image}}
 
 
@@ -264,7 +308,7 @@ station_display_offset = 0 # pylint: disable=invalid-name
 
 for idx, station_config in enumerate(station_configs):
     if idx > 0:
-        station_display_offset += stations[idx-1].get_dep_list_length() + 1
+        station_display_offset += stations[idx-1].get_departure_count() + 1
 
     stations.append(Station(station_config, station_display_offset))
 
