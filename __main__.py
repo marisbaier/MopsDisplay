@@ -7,6 +7,7 @@ Author: Maris Baier
 import os
 import re
 import requests
+import pathlib
 import tkinter as tk
 from datetime import datetime
 
@@ -122,8 +123,11 @@ def wheninminutes(SbahnJson):
 
 def getImages():
     out = []
-    
-    for f in os.scandir("MopsDisplay/src/images/"):
+
+    # https://stackoverflow.com/a/3430395
+    root_path = pathlib.Path(__file__).parent.resolve()
+
+    for f in os.scandir(root_path.joinpath("src/images/")):
         if re.match("S?[0-9]+\.png", f.name):
             out.append(f.name.split(".")[0])
 
@@ -147,16 +151,23 @@ root = tk.Tk()
 root.attributes("-fullscreen", True)
 canvas = tk.Canvas()
 
-Empty = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/Empty.png').resize((1,1)))
-HUlogoimage = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/Huberlin-logo.png').resize((100,100)))
+# https://stackoverflow.com/a/3430395
+image_path = pathlib.Path(__file__).parent.resolve().joinpath("src/images/")
+
+Empty = ImageTk.PhotoImage(Image.open(image_path.joinpath("Empty.png")).resize((1,1)))
+HUlogoimage = ImageTk.PhotoImage(Image.open(image_path.joinpath("Huberlin-logo.png")).resize((100,100)))
 imagenames = getImages()
-images = {imagename:ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/'+imagename+'.png').resize((40,20))) for imagename in imagenames}
+images = {imagename:ImageTk.PhotoImage(Image.open(image_path.joinpath(f"{imagename}.png")).resize((40,20))) for imagename in imagenames}
 
 
 setup(canvas, images, HUlogoimage)
 
 global stations
-s = [("S Adlershof",900193002, True, False, True,9,33, 11, 6), ("Karl-Ziegler-Str",900000194016, False, True, False,3, 25, 5, 5), ("Magnusstr.",900000194501,False, False, True,3, 21, 5, 5)]
+s = [
+    ("S Adlershof",900193002, True, False, True,9,33, 11, 6),
+    ("Karl-Ziegler-Str",900000194016, False, True, False,3, 25, 5, 5),
+    ("Magnusstr.",900000194501,False, False, True,3, 21, 5, 5)
+]
 stations = []
 offset = 0
 for j, sa in enumerate(s):
