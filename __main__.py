@@ -1,9 +1,9 @@
-'''
+"""
 Displays realtime train departures for nearby stations, and upcoming events from the HU calendar.
 
 Authored-By: Maris Baier
 Co-Authored-By: Hazel Reimer
-'''
+"""
 
 import os
 import re
@@ -17,34 +17,34 @@ import requests
 
 from PIL import ImageTk, Image
 
-FONT_DEFAULT = ('Helvetica', 20, 'bold')
-FONT_TITLE_2 = ('Helvetica', 28, 'bold')
+FONT_DEFAULT = ("Helvetica", 20, "bold")
+FONT_TITLE_2 = ("Helvetica", 28, "bold")
 
 class OutgoingConnection:
     def __init__(self, requestjson, ypos):
-        '''
+        """
         Displays departure information for a single mode of transport.
 
         Upon creation, checks for a correspanding lineimage stored.
-        If there's none, loads an empty image.
+        If there"s none, loads an empty image.
 
         Then creates text objects for departure information (destination and remaining time).
-        '''
+        """
         try:
-            lineimage = images[requestjson['line']['name']]
+            lineimage = images[requestjson["line"]["name"]]
         except KeyError:
             lineimage = empty
         self.image = canvas.create_image(75, ypos, image = lineimage)
 
-        direct = requestjson['direction']
+        direct = requestjson["direction"]
         if len(direct) > 35:
             direct = direct[0:35] + "..."
             print(direct)
 
         self.when_int = when_in_minutes(requestjson)
 
-        self.direction = canvas.create_text(75+40, ypos, text=direct, font=FONT_DEFAULT, anchor='w')
-        self.when = canvas.create_text(540, ypos, text=self.when_int, font=FONT_DEFAULT, anchor='e')
+        self.direction = canvas.create_text(75+40, ypos, text=direct, font=FONT_DEFAULT, anchor="w")
+        self.when = canvas.create_text(540, ypos, text=self.when_int, font=FONT_DEFAULT, anchor="e")
 
     def change(self, image, direction, when):
         canvas.itemconfig(self.image, image = image)
@@ -66,7 +66,7 @@ class Station:
 
         self.departures = []
 
-        self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor='w'))
+        self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor="w"))
         self.departure_list()
 
 
@@ -81,10 +81,10 @@ class Station:
         for i,displayedobject in enumerate(self.departures[1:]):
             if i<len(departures):
                 departure = departures[i]
-                linename = departure['line']['name']
+                linename = departure["line"]["name"]
                 inminutes = when_in_minutes(departure)
                 
-                direct = departure['direction']
+                direct = departure["direction"]
                 
                 if len(direct) > 35:
                     direct = direct[:35] + "..."
@@ -93,16 +93,16 @@ class Station:
                 try:
                     displayedobject.change(images[linename],direct,inminutes)
                 except KeyError:
-                    if re.match("[0-9]{3}", linename) or departure['line']['adminCode'] == "SEV":
-                        displayedobject.change(images['164'],direct,inminutes)
+                    if re.match("[0-9]{3}", linename) or departure["line"]["adminCode"] == "SEV":
+                        displayedobject.change(images["164"],direct,inminutes)
                     else:
                         displayedobject.change(empty,direct,inminutes)
                 if inminutes<self.min_time_needed:
-                    canvas.itemconfig(displayedobject.when, fill='red')
+                    canvas.itemconfig(displayedobject.when, fill="red")
                 else:
-                    canvas.itemconfig(displayedobject.when, fill='white')
+                    canvas.itemconfig(displayedobject.when, fill="white")
             else:
-                displayedobject.change(empty,'','')
+                displayedobject.change(empty,"","")
     
     def get_dep_list_length(self):
         return len(self.departures)
@@ -120,14 +120,14 @@ def get_departures(url, max_departures):
             departures = []
             trip_ids = []
             for i in response:
-                if i['when'] is not None and i['tripId'] not in trip_ids and len(departures) <= max_departures:
+                if i["when"] is not None and i["tripId"] not in trip_ids and len(departures) <= max_departures:
                     departures.append(i)
-                    trip_ids.append(i['tripId'])
+                    trip_ids.append(i["tripId"])
             break
     return departures
 
 def when_in_minutes(json):
-    departure = dateparser.parse(json['when'])
+    departure = dateparser.parse(json["when"])
 
     difference = departure - datetime.now(departure.tzinfo)
     difference = difference.total_seconds() / 60
@@ -147,16 +147,16 @@ def get_images():
     return out
 
 def setup(ctx):
-    ctx.create_rectangle(580, 0, 1200, 800, fill='#165096', outline='#165096')
+    ctx.create_rectangle(580, 0, 1200, 800, fill="#165096", outline="#165096")
     ctx.create_image(700, 100, image=hu_logo_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
     event_display_offset = 300
     for event_config in event_configs:
-        ctx.create_text(650, event_display_offset, text=event_config["date"], font=FONT_DEFAULT, anchor='nw')
+        ctx.create_text(650, event_display_offset, text=event_config["date"], font=FONT_DEFAULT, anchor="nw")
 
         for line in event_config["description"]:
-            ctx.create_text(750, event_display_offset, text=line, font=FONT_DEFAULT, anchor='nw')
+            ctx.create_text(750, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw")
             event_display_offset += 25
         
         event_display_offset += 5
