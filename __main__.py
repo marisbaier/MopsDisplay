@@ -10,6 +10,7 @@ import pathlib
 import tkinter as tk
 from functools import reduce
 from datetime import datetime
+from dateutil import parser as dateparser
 import requests
 
 
@@ -118,11 +119,13 @@ def get_departures(url, max_departures):
             break
     return departures
 
-def when_in_minutes(SbahnJson):
-    if int(datetime.now().hour) == 23:
-        return int(SbahnJson['when'][14]+SbahnJson['when'][15])-int(datetime.now().strftime("%M"))+60
+def when_in_minutes(json):
+    departure = dateparser.parse(json['when'])
 
-    return int(SbahnJson['when'][14]+SbahnJson['when'][15])-int(datetime.now().strftime("%M"))-60*(int(datetime.now().hour)-int(SbahnJson['when'][12])-10*int(SbahnJson['when'][11]))
+    difference = departure - datetime.now(departure.tzinfo)
+    difference = difference.total_seconds() / 60
+
+    return int(difference)
 
 def get_images():
     out = []
