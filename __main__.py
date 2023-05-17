@@ -110,9 +110,10 @@ class Station:
                 try:
                     displayedobject.change(images[linename], direct, time_remaining)
                 except KeyError:
-                    if re.match("[0-9]{3}", linename) or departure["line"]["adminCode"] == "SEV":
+                    if re.match(r"(\d{3}|N\d{2,3})", linename) or departure["line"]["adminCode"] == "SEV":
                         displayedobject.change(images["164"], direct, time_remaining)
                     else:
+                        print(f"Line {linename} not found in images dictionary.")
                         displayedobject.change(empty, direct, time_remaining)
                 if time_remaining < self.min_time_needed:
                     canvas.itemconfig(displayedobject.when, fill="red")
