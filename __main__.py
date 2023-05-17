@@ -1,144 +1,175 @@
 '''
-This python script is used to display information on a screen:)
+Displays realtime train departures for nearby stations, and upcoming events from the HU calendar.
 
-Author: Maris Baier
+Authored-By: Maris Baier
+Co-Authored-By: Hazel Reimer
 '''
 
 import os
 import re
-import requests
+import pathlib
 import tkinter as tk
+from functools import reduce
 from datetime import datetime
+from dateutil import parser as dateparser
+import requests
+
 
 from PIL import ImageTk, Image
 
-class SbahnObject:
+FONT_DEFAULT = ('Helvetica', 20, 'bold')
+FONT_TITLE_2 = ('Helvetica', 28, 'bold')
+
+class OutgoingConnection:
     def __init__(self, requestjson, ypos):
         '''
-        When an S-Bahn object is created, it checks for a correspanding lineimage stored. If there's none, it shows an empty image.
-        It then creates text (direction and departure in min).
+        Displays departure information for a single mode of transport.
+
+        Upon creation, checks for a correspanding lineimage stored.
+        If there's none, loads an empty image.
+
+        Then creates text objects for departure information (destination and remaining time).
         '''
         try:
             lineimage = images[requestjson['line']['name']]
-        except:
-            lineimage = Empty
-        self.image = canvas.create_image(130, ypos, image = lineimage)
+        except KeyError:
+            lineimage = empty
+        self.image = canvas.create_image(75, ypos, image = lineimage)
 
         direct = requestjson['direction']
-        if len(direct) > 15:
-            direct = direct[0:15] + "..."
+        if len(direct) > 35:
+            direct = direct[0:35] + "..."
             print(direct)
 
-        self.whenInt = wheninminutes(requestjson)
+        self.when_int = when_in_minutes(requestjson)
 
-        self.direction = canvas.create_text(170, ypos, text=direct,font=('Helvetica',20,'bold'), anchor='w')
-        self.when = canvas.create_text(480, ypos, text=self.whenInt,font=('Helvetica',20,'bold'), anchor='w')
+        self.direction = canvas.create_text(75+40, ypos, text=direct, font=FONT_DEFAULT, anchor='w')
+        self.when = canvas.create_text(540, ypos, text=self.when_int, font=FONT_DEFAULT, anchor='e')
 
     def change(self, image, direction, when):
         canvas.itemconfig(self.image, image = image)
         canvas.itemconfig(self.direction, text=direction)
         canvas.itemconfig(self.when, text=when)
 
-class station:
-    def __init__(self, name, id, sBahn, Tram, Bus, startFrom=5, upTo=33, distance=11, maxDepatures=6, offset=0):
-        self.name = name
-        self.id = id
-        self.sBahn = sBahn
-        self.Tram = Tram
-        self.Bus = Bus
-        self.offset = offset
-        self.startFrom = startFrom
-        self.upTo = upTo
-        self.distance = distance
-        self.maxDepatures = maxDepatures
+class Station:
+    def __init__(self, config, display_offset):
+        self.name = config["name"]
+        self.station_id = config["station_id"]
+        self.s_bahn = config["s_bahn"]
+        self.tram = config["tram"]
+        self.bus = config["bus"]
+        self.min_time = config["min_time"]
+        self.max_time = config["max_time"]
+        self.min_time_needed = config["min_time_needed"]
+        self.max_departures = config["max_departures"]
+        self.display_offset = display_offset
 
-        self.dObs = []
+        self.departures = []
 
-        self.dObs.append(canvas.create_text(50, 100+self.offset*40, text=self.name,font=('Helvetica',28,'bold'), anchor='w'))
-        self.depatureList()
+        self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor='w'))
+        self.departure_list()
 
 
-    def depatureList(self):        
-        Sbahnabfahrten = getDepartures(self.getUrl(), self.maxDepatures)
-        if len(Sbahnabfahrten)>len(self.dObs):
-            add = len(self.dObs)
-            for i,Sbahn in enumerate(Sbahnabfahrten[len(self.dObs):-1]):
+    def departure_list(self):
+        departures = get_departures(self.get_url(), self.max_departures)
+        if len(departures)>len(self.departures):
+            add = len(self.departures)
+            for i,s_bahn in enumerate(departures[len(self.departures):-1]):
                 i += add
-                self.dObs.append(SbahnObject(Sbahn, ypos=100+(i+self.offset)*40))
+                self.departures.append(OutgoingConnection(s_bahn, ypos=100+(i+self.display_offset)*40))
 
-        for i,displayedobject in enumerate(self.dObs[1:]):
-            if i<len(Sbahnabfahrten):
-                Sbahn = Sbahnabfahrten[i]
-                linename = Sbahn['line']['name']
-                inminutes = wheninminutes(Sbahn)
+        for i,displayedobject in enumerate(self.departures[1:]):
+            if i<len(departures):
+                s_bahn = departures[i]
+                linename = s_bahn['line']['name']
+                inminutes = when_in_minutes(s_bahn)
                 
-                direct = Sbahn['direction']
+                direct = s_bahn['direction']
                 
-                if len(direct) > 15:
-                    direct = direct[:15] + "..."
+                if len(direct) > 35:
+                    direct = direct[:35] + "..."
 
 
                 try:
                     displayedobject.change(images[linename],direct,inminutes)
                 except KeyError:
-                    if re.match("[0-9]{3}", linename) or Sbahn['line']['adminCode'] == "SEV":
+                    if re.match("[0-9]{3}", linename) or s_bahn['line']['adminCode'] == "SEV":
                         displayedobject.change(images['164'],direct,inminutes)
                     else:
-                        displayedobject.change(Empty,direct,inminutes)
-                if inminutes<self.distance:
+                        displayedobject.change(empty,direct,inminutes)
+                if inminutes<self.min_time_needed:
                     canvas.itemconfig(displayedobject.when, fill='red')
                 else:
-                    canvas.itemconfig(displayedobject.when, fill='black')
+                    canvas.itemconfig(displayedobject.when, fill='white')
             else:
-                displayedobject.change(Empty,'','')
+                displayedobject.change(empty,'','')
     
-    def getDepListLength(self):
-        return len(self.dObs)
+    def get_dep_list_length(self):
+        return len(self.departures)
 
-    def getUrl(self):
-        return f"https://v5.bvg.transport.rest/stops/{self.id}/departures?results=20&suburban={self.sBahn}&tram={self.Tram}&bus={self.Bus}&when=in+{self.startFrom}+minutes&duration={self.upTo}"
+    def get_url(self):
+        return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"
 
-def getDepartures(url, maxDepatures):
+def get_departures(url, max_departures):
     while True:
         try:
-            response = requests.get(url).json()
-        except:
+            response = requests.get(url, timeout=30000).json()
+        except requests.exceptions.Timeout:
             continue
         else:
-            Abfahrten=[]
-            tripIds=[]
+            departures = []
+            trip_ids = []
             for i in response:
-                if i['when'] is not None and i['tripId'] not in tripIds and len(Abfahrten)<=maxDepatures:
-                    Abfahrten.append(i)
-                    tripIds.append(i['tripId'])
+                if i['when'] is not None and i['tripId'] not in trip_ids and len(departures) <= max_departures:
+                    departures.append(i)
+                    trip_ids.append(i['tripId'])
             break
-    return Abfahrten
+    return departures
 
-def wheninminutes(SbahnJson):
-    if int(datetime.now().hour) == 23:
-        return int(SbahnJson['when'][14]+SbahnJson['when'][15])-int(datetime.now().strftime("%M"))+60
+def when_in_minutes(json):
+    departure = dateparser.parse(json['when'])
 
-    return int(SbahnJson['when'][14]+SbahnJson['when'][15])-int(datetime.now().strftime("%M"))-60*(int(datetime.now().hour)-int(SbahnJson['when'][12])-10*int(SbahnJson['when'][11]))
+    difference = departure - datetime.now(departure.tzinfo)
+    difference = difference.total_seconds() / 60
 
-def getImages():
+    return int(difference)
+
+def get_images():
     out = []
-    
-    for f in os.scandir("MopsDisplay/src/images/"):
-        if re.match("S?[0-9]+\.png", f.name):
+
+    # https://stackoverflow.com/a/3430395
+    root_path = pathlib.Path(__file__).parent.resolve()
+
+    for f in os.scandir(root_path.joinpath("src/images/")):
+        if re.match(r"S?[0-9]+\.png", f.name):
             out.append(f.name.split(".")[0])
 
     return out
 
-def setup(canvas, images, HUlogoimage):
-    bluecolorbox = canvas.create_rectangle(580, 0, 1200, 800, fill='light blue', outline='light blue')
-    HUlogo = canvas.create_image(700, 100, image=HUlogoimage)
-    #canvas.create_text(480, 55, text='min', font=('Helvetica',15,'bold'))           # min sign
-    canvas.pack(fill=tk.BOTH, expand=True)
-    canvas.create_text(600, 300, text='Nächste Veranstaltungen:', font=('Helvetica', 18,'bold'), anchor='nw')
-    canvas.create_text(600, 350, text='Morgen Auftaktsparty ab 17 Uhr!', font=('Helvetica', 12,'bold'), anchor='nw')
-    canvas.create_text(600, 375, text='22. Mai   Schachturnier', font=('Helvetica', 12,'bold'), anchor='nw')
-    canvas.create_text(600, 400, text='30. Mai   Mops Geburtstag', font=('Helvetica', 12,'bold'), anchor='nw')
-    canvas.create_text(600, 425, text='''14. Juni  Hörsaalkino Special:\n         "Jim Knopf und Lukas\n           der Lokomotivführer"\n       mit Vortrag von Dr. Lohse''', font=('Helvetica', 12,'bold'), anchor='nw')
+def setup(ctx):
+    ctx.create_rectangle(580, 0, 1200, 800, fill='light blue', outline='light blue')
+    ctx.create_image(700, 100, image=hu_logo_image)
+    ctx.pack(fill=tk.BOTH, expand=True)
+
+    event_display_offset = 300
+    for event_config in event_configs:
+        ctx.create_text(650, event_display_offset, text=event_config["date"], font=FONT_DEFAULT, anchor='nw')
+
+        for line in event_config["description"]:
+            ctx.create_text(750, event_display_offset, text=line, font=FONT_DEFAULT, anchor='nw')
+            event_display_offset += 25
+        
+        event_display_offset += 5
+
+def load_image(acc, name):
+    image = Image.open(image_path.joinpath(f"{name}.png"))
+    if name.startswith("S"):
+        image.thumbnail((40,40), Image.LANCZOS)
+    else:
+        image.thumbnail((30,30), Image.LANCZOS)
+    image = ImageTk.PhotoImage(image)
+    
+    return {**acc, **{name: image}}
 
 
 ### Setup
@@ -147,27 +178,103 @@ root = tk.Tk()
 root.attributes("-fullscreen", True)
 canvas = tk.Canvas()
 
-Empty = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/Empty.png').resize((1,1)))
-HUlogoimage = ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/Huberlin-logo.png').resize((100,100)))
-imagenames = getImages()
-images = {imagename:ImageTk.PhotoImage(Image.open('MopsDisplay/src/images/'+imagename+'.png').resize((40,20))) for imagename in imagenames}
+# https://stackoverflow.com/a/3430395
+image_path = pathlib.Path(__file__).parent.resolve().joinpath("src/images/")
+
+empty = Image.open(image_path.joinpath("Empty.png")).resize((1,1))
+empty = ImageTk.PhotoImage(empty)
+
+hu_logo_image = Image.open(image_path.joinpath("Huberlin-logo.png")).resize((100,100))
+hu_logo_image = ImageTk.PhotoImage(hu_logo_image)
+
+imagenames = get_images()
+images = reduce(load_image, imagenames, {})
 
 
-setup(canvas, images, HUlogoimage)
+station_configs = [
+    {
+        "name": "S Adlershof",
+        "station_id": 900193002,
+        "s_bahn": True,
+        "tram": False,
+        "bus": True,
+        "min_time": 9,
+        "max_time": 42,
+        "min_time_needed": 11,
+        "max_departures": 6
+    },
+    {
+        "name": "Karl-Ziegler-Str",
+        "station_id": 900000194016,
+        "s_bahn": False,
+        "tram": True,
+        "bus": False,
+        "min_time": 3,
+        "max_time": 28,
+        "min_time_needed": 5,
+        "max_departures": 5
+    },
+    {
+        "name": "Magnusstr.",
+        "station_id": 900000194501,
+        "s_bahn": False,
+        "tram": False,
+        "bus": True,
+        "min_time": 3,
+        "max_time": 24,
+        "min_time_needed": 5,
+        "max_departures": 5
+    }
+]
 
-global stations
-s = [("S Adlershof",900193002, True, False, True,9,33, 11, 6), ("Karl-Ziegler-Str",900000194016, False, True, False,3, 25, 5, 5), ("Magnusstr.",900000194501,False, False, True,3, 21, 5, 5)]
+event_configs = [
+    {
+        "date": "Morgen",
+        "description": [
+            "Auftaktsparty ab 17 Uhr!",
+        ],
+    },
+    {
+        "date": "22. Mai",
+        "description": [
+            "Schachturnier",
+        ],
+    },
+    {
+        "date": "30. Mai",
+        "description": [
+            "Mops Geburtstag",
+        ],
+    },
+    {
+        "date": "14. Juni",
+        "description": [
+            "Hörsaalkino Special:",
+            "  \"Jim Knopf und Lukas",
+            "   der Lokomotivführer\"",
+            "mit Vortrag von Dr. Lohse",
+        ],
+    },
+]
+
+setup(canvas)
+
 stations = []
-offset = 0
-for j, sa in enumerate(s):
-    if j > 0:
-        offset += stations[j-1].getDepListLength() + 1
-    stations.append(station(sa[0],sa[1],sa[2],sa[3], sa[4], sa[5], sa[6], sa[7], sa[8], offset))
+station_display_offset = 0 # pylint: disable=invalid-name
 
-def mainloop():
-    for s in stations[:1]:
-        s.depatureList()
-    root.after(60000, mainloop) #Wait for a minute
+for idx, station_config in enumerate(station_configs):
+    if idx > 0:
+        station_display_offset += stations[idx-1].get_dep_list_length() + 1
 
-root.after(1000, mainloop) # run first time after 1000ms (1s)
+    stations.append(Station(station_config, station_display_offset))
+
+def mainloop(): # pylint: disable=missing-function-docstring
+    for station in stations[:1]:
+        station.departure_list()
+
+    # Refresh every minute
+    root.after(60 * 1000, mainloop)
+
+# First refresh after 1 second
+root.after(1000, mainloop)
 root.mainloop()
