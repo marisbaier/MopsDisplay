@@ -31,10 +31,8 @@ class OutgoingConnection:
 
         Then creates text objects for departure information (destination and remaining time).
         """
-        try:
-            lineimage = images[requestjson["line"]["name"]]
-        except KeyError:
-            lineimage = empty
+        lineimage = resolve_image(requestjson)
+
         self.image = canvas.create_image(75, ypos, image = lineimage)
 
         direct = requestjson["direction"]
@@ -98,7 +96,6 @@ class Station:
         for i,displayedobject in enumerate(self.departures[1:]):
             if i<len(departures):
                 departure = departures[i]
-                linename = departure["line"]["name"]
                 time_remaining = calculate_remaining_time(departure)
 
                 direct = departure["direction"]
@@ -107,14 +104,9 @@ class Station:
                     direct = direct[:35] + "..."
 
 
-                try:
-                    displayedobject.change(images[linename], direct, time_remaining)
-                except KeyError:
-                    if re.match(r"(\d{3}|N\d{2,3})", linename) or departure["line"]["adminCode"] == "SEV":
-                        displayedobject.change(images["164"], direct, time_remaining)
-                    else:
-                        print(f"Line {linename} not found in images dictionary.")
-                        displayedobject.change(empty, direct, time_remaining)
+                lineimage = resolve_image(departure)
+                displayedobject.change(lineimage, direct, time_remaining)
+
                 if time_remaining < self.min_time_needed:
                     canvas.itemconfig(displayedobject.when, fill="red")
                 else:
@@ -179,10 +171,29 @@ def get_images():
     root_path = pathlib.Path(__file__).parent.resolve()
 
     for file in os.scandir(root_path.joinpath("src/images/")):
-        if re.match(r"S?[0-9]+\.png", file.name):
+        if re.match(r"(S?[0-9]+|bus|tram)\.png", file.name):
             out.append(file.name.split(".")[0])
 
     return out
+
+def resolve_image(departure):
+    """
+    Returns the line image for the given line name.
+    """
+
+    name = departure["line"]["name"]
+    admin_code = departure["line"]["adminCode"]
+
+    if name in images:
+        return images[name]
+    else:
+        if re.match(r"(\d{3}|N\d{2,3})", name) or admin_code == "SEV":
+            return images["bus"]
+        elif re.match(r"(M?\d{2})", name):
+            return images["tram"]
+        else:
+            print(f"Line {name} not found in images dictionary.")
+            return empty
 
 def setup(ctx):
     """
@@ -234,7 +245,6 @@ hu_logo_image = ImageTk.PhotoImage(hu_logo_image)
 
 imagenames = get_images()
 images = reduce(load_image, imagenames, {})
-
 
 station_configs = [
     {
