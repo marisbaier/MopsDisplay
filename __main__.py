@@ -147,7 +147,7 @@ def get_images():
     return out
 
 def setup(ctx):
-    ctx.create_rectangle(580, 0, 1200, 800, fill='light blue', outline='light blue')
+    ctx.create_rectangle(580, 0, 1200, 800, fill='#165096', outline='#165096')
     ctx.create_image(700, 100, image=hu_logo_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
