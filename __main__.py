@@ -30,17 +30,17 @@ class SbahnObject:
             lineimage = images[requestjson['line']['name']]
         except KeyError:
             lineimage = empty
-        self.image = canvas.create_image(130, ypos, image = lineimage)
+        self.image = canvas.create_image(75, ypos, image = lineimage)
 
         direct = requestjson['direction']
-        if len(direct) > 15:
-            direct = direct[0:15] + "..."
+        if len(direct) > 35:
+            direct = direct[0:35] + "..."
             print(direct)
 
         self.when_int = when_in_minutes(requestjson)
 
-        self.direction = canvas.create_text(170, ypos, text=direct, font=FONT_DEFAULT, anchor='w')
-        self.when = canvas.create_text(480, ypos, text=self.when_int,font=FONT_DEFAULT, anchor='w')
+        self.direction = canvas.create_text(75+40, ypos, text=direct, font=FONT_DEFAULT, anchor='w')
+        self.when = canvas.create_text(540, ypos, text=self.when_int, font=FONT_DEFAULT, anchor='e')
 
     def change(self, image, direction, when):
         canvas.itemconfig(self.image, image = image)
@@ -82,8 +82,8 @@ class Station:
                 
                 direct = s_bahn['direction']
                 
-                if len(direct) > 15:
-                    direct = direct[:15] + "..."
+                if len(direct) > 35:
+                    direct = direct[:35] + "..."
 
 
                 try:
@@ -96,7 +96,7 @@ class Station:
                 if inminutes<self.min_time_needed:
                     canvas.itemconfig(displayedobject.when, fill='red')
                 else:
-                    canvas.itemconfig(displayedobject.when, fill='black')
+                    canvas.itemconfig(displayedobject.when, fill='white')
             else:
                 displayedobject.change(empty,'','')
     
@@ -144,7 +144,7 @@ def get_images():
 
 def setup(ctx):
     ctx.create_rectangle(580, 0, 1200, 800, fill='light blue', outline='light blue')
-    ctx.create_image(700, 100, image=hu_logo_image)         # min sign
+    ctx.create_image(700, 100, image=hu_logo_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
     event_display_offset = 300
@@ -158,7 +158,11 @@ def setup(ctx):
         event_display_offset += 5
 
 def load_image(acc, name):
-    image = Image.open(image_path.joinpath(f"{name}.png")).resize((40,20))
+    image = Image.open(image_path.joinpath(f"{name}.png"))
+    if name.startswith("S"):
+        image.thumbnail((40,40), Image.LANCZOS)
+    else:
+        image.thumbnail((30,30), Image.LANCZOS)
     image = ImageTk.PhotoImage(image)
     
     return {**acc, **{name: image}}
