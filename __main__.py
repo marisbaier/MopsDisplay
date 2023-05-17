@@ -1,7 +1,8 @@
 '''
-This python script is used to display information on a screen:)
+Displays realtime train departures for nearby stations, and upcoming events from the HU calendar.
 
-Author: Maris Baier
+Authored-By: Maris Baier
+Co-Authored-By: Hazel Reimer
 '''
 
 import os
@@ -22,9 +23,12 @@ FONT_TITLE_2 = ('Helvetica', 28, 'bold')
 class SbahnObject:
     def __init__(self, requestjson, ypos):
         '''
-        When an S-Bahn object is created, it checks for a correspanding lineimage stored.
-        If there's none, it shows an empty image.
-        It then creates text (direction and departure in min).
+        Displays departure information for a single mode of transport.
+
+        Upon creation, checks for a correspanding lineimage stored.
+        If there's none, loads an empty image.
+
+        Then creates text objects for departure information (destination and remaining time).
         '''
         try:
             lineimage = images[requestjson['line']['name']]
