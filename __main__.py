@@ -20,7 +20,7 @@ from PIL import ImageTk, Image
 FONT_DEFAULT = ('Helvetica', 20, 'bold')
 FONT_TITLE_2 = ('Helvetica', 28, 'bold')
 
-class SbahnObject:
+class OutgoingConnection:
     def __init__(self, requestjson, ypos):
         '''
         Displays departure information for a single mode of transport.
@@ -64,23 +64,23 @@ class Station:
         self.max_departures = config["max_departures"]
         self.display_offset = display_offset
 
-        self.dObs = []
+        self.departures = []
 
-        self.dObs.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor='w'))
+        self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor='w'))
         self.departure_list()
 
 
     def departure_list(self):
-        s_bahn_departures = get_departures(self.get_url(), self.max_departures)
-        if len(s_bahn_departures)>len(self.dObs):
-            add = len(self.dObs)
-            for i,s_bahn in enumerate(s_bahn_departures[len(self.dObs):-1]):
+        departures = get_departures(self.get_url(), self.max_departures)
+        if len(departures)>len(self.departures):
+            add = len(self.departures)
+            for i,s_bahn in enumerate(departures[len(self.departures):-1]):
                 i += add
-                self.dObs.append(SbahnObject(s_bahn, ypos=100+(i+self.display_offset)*40))
+                self.departures.append(OutgoingConnection(s_bahn, ypos=100+(i+self.display_offset)*40))
 
-        for i,displayedobject in enumerate(self.dObs[1:]):
-            if i<len(s_bahn_departures):
-                s_bahn = s_bahn_departures[i]
+        for i,displayedobject in enumerate(self.departures[1:]):
+            if i<len(departures):
+                s_bahn = departures[i]
                 linename = s_bahn['line']['name']
                 inminutes = when_in_minutes(s_bahn)
                 
@@ -105,7 +105,7 @@ class Station:
                 displayedobject.change(empty,'','')
     
     def get_dep_list_length(self):
-        return len(self.dObs)
+        return len(self.departures)
 
     def get_url(self):
         return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"
