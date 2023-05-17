@@ -74,17 +74,17 @@ class Station:
         departures = get_departures(self.get_url(), self.max_departures)
         if len(departures)>len(self.departures):
             add = len(self.departures)
-            for i,s_bahn in enumerate(departures[len(self.departures):-1]):
+            for i,departure in enumerate(departures[len(self.departures):-1]):
                 i += add
-                self.departures.append(OutgoingConnection(s_bahn, ypos=100+(i+self.display_offset)*40))
+                self.departures.append(OutgoingConnection(departure, ypos=100+(i+self.display_offset)*40))
 
         for i,displayedobject in enumerate(self.departures[1:]):
             if i<len(departures):
-                s_bahn = departures[i]
-                linename = s_bahn['line']['name']
-                inminutes = when_in_minutes(s_bahn)
+                departure = departures[i]
+                linename = departure['line']['name']
+                inminutes = when_in_minutes(departure)
                 
-                direct = s_bahn['direction']
+                direct = departure['direction']
                 
                 if len(direct) > 35:
                     direct = direct[:35] + "..."
@@ -93,7 +93,7 @@ class Station:
                 try:
                     displayedobject.change(images[linename],direct,inminutes)
                 except KeyError:
-                    if re.match("[0-9]{3}", linename) or s_bahn['line']['adminCode'] == "SEV":
+                    if re.match("[0-9]{3}", linename) or departure['line']['adminCode'] == "SEV":
                         displayedobject.change(images['164'],direct,inminutes)
                     else:
                         displayedobject.change(empty,direct,inminutes)
