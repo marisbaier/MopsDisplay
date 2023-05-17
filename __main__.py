@@ -188,11 +188,13 @@ def resolve_image(departure):
         return images[name]
     else:
         if re.match(r"(\d{3}|N\d{2,3})", name) or admin_code == "SEV":
+            print(f"Using fallback image for bus '{name}'.")
             return images["bus"]
         elif re.match(r"(M?\d{2})", name):
+            print(f"Using fallback image for tram '{name}'.")
             return images["tram"]
         else:
-            print(f"Line {name} not found in images dictionary.")
+            print(f"Image not found for '{name}'.")
             return empty
 
 def setup(ctx):
