@@ -16,6 +16,9 @@ import requests
 
 from PIL import ImageTk, Image
 
+FONT_DEFAULT = ('Helvetica', 20, 'bold')
+FONT_TITLE_2 = ('Helvetica', 28, 'bold')
+
 class SbahnObject:
     def __init__(self, requestjson, ypos):
         '''
@@ -36,8 +39,8 @@ class SbahnObject:
 
         self.when_int = when_in_minutes(requestjson)
 
-        self.direction = canvas.create_text(170, ypos, text=direct,font=('Helvetica',20,'bold'), anchor='w')
-        self.when = canvas.create_text(480, ypos, text=self.when_int,font=('Helvetica',20,'bold'), anchor='w')
+        self.direction = canvas.create_text(170, ypos, text=direct, font=FONT_DEFAULT, anchor='w')
+        self.when = canvas.create_text(480, ypos, text=self.when_int,font=FONT_DEFAULT, anchor='w')
 
     def change(self, image, direction, when):
         canvas.itemconfig(self.image, image = image)
@@ -45,21 +48,21 @@ class SbahnObject:
         canvas.itemconfig(self.when, text=when)
 
 class Station:
-    def __init__(self, name, station_id, s_bahn, tram, bus, start_from=5, up_to=33, distance=11, max_departures=6, display_offset=0):
-        self.name = name
-        self.station_id = station_id
-        self.s_bahn = s_bahn
-        self.tram = tram
-        self.bus = bus
+    def __init__(self, config, display_offset):
+        self.name = config["name"]
+        self.station_id = config["station_id"]
+        self.s_bahn = config["s_bahn"]
+        self.tram = config["tram"]
+        self.bus = config["bus"]
+        self.min_time = config["min_time"]
+        self.max_time = config["max_time"]
+        self.min_time_needed = config["min_time_needed"]
+        self.max_departures = config["max_departures"]
         self.display_offset = display_offset
-        self.start_from = start_from
-        self.up_to = up_to
-        self.distance = distance
-        self.max_departures = max_departures
 
         self.dObs = []
 
-        self.dObs.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=('Helvetica',28,'bold'), anchor='w'))
+        self.dObs.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor='w'))
         self.departure_list()
 
 
@@ -90,7 +93,7 @@ class Station:
                         displayedobject.change(images['164'],direct,inminutes)
                     else:
                         displayedobject.change(empty,direct,inminutes)
-                if inminutes<self.distance:
+                if inminutes<self.min_time_needed:
                     canvas.itemconfig(displayedobject.when, fill='red')
                 else:
                     canvas.itemconfig(displayedobject.when, fill='black')
@@ -101,7 +104,7 @@ class Station:
         return len(self.dObs)
 
     def get_url(self):
-        return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&when=in+{self.start_from}+minutes&duration={self.up_to}"
+        return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"
 
 def get_departures(url, max_departures):
     while True:
@@ -141,14 +144,18 @@ def get_images():
 
 def setup(ctx):
     ctx.create_rectangle(580, 0, 1200, 800, fill='light blue', outline='light blue')
-    ctx.create_image(700, 100, image=hu_logo_image)
-    #ctx.create_text(480, 55, text='min', font=('Helvetica',15,'bold'))           # min sign
+    ctx.create_image(700, 100, image=hu_logo_image)         # min sign
     ctx.pack(fill=tk.BOTH, expand=True)
-    ctx.create_text(600, 300, text='Nächste Veranstaltungen:', font=('Helvetica', 18,'bold'), anchor='nw')
-    ctx.create_text(600, 350, text='Morgen Auftaktsparty ab 17 Uhr!', font=('Helvetica', 12,'bold'), anchor='nw')
-    ctx.create_text(600, 375, text='22. Mai   Schachturnier', font=('Helvetica', 12,'bold'), anchor='nw')
-    ctx.create_text(600, 400, text='30. Mai   Mops Geburtstag', font=('Helvetica', 12,'bold'), anchor='nw')
-    ctx.create_text(600, 425, text='''14. Juni  Hörsaalkino Special:\n         "Jim Knopf und Lukas\n           der Lokomotivführer"\n       mit Vortrag von Dr. Lohse''', font=('Helvetica', 12,'bold'), anchor='nw')
+
+    event_display_offset = 300
+    for event_config in event_configs:
+        ctx.create_text(650, event_display_offset, text=event_config["date"], font=FONT_DEFAULT, anchor='nw')
+
+        for line in event_config["description"]:
+            ctx.create_text(750, event_display_offset, text=line, font=FONT_DEFAULT, anchor='nw')
+            event_display_offset += 25
+        
+        event_display_offset += 5
 
 def load_image(acc, name):
     image = Image.open(image_path.joinpath(f"{name}.png")).resize((40,20))
@@ -176,24 +183,90 @@ imagenames = get_images()
 images = reduce(load_image, imagenames, {})
 
 
+station_configs = [
+    {
+        "name": "S Adlershof",
+        "station_id": 900193002,
+        "s_bahn": True,
+        "tram": False,
+        "bus": True,
+        "min_time": 9,
+        "max_time": 42,
+        "min_time_needed": 11,
+        "max_departures": 6
+    },
+    {
+        "name": "Karl-Ziegler-Str",
+        "station_id": 900000194016,
+        "s_bahn": False,
+        "tram": True,
+        "bus": False,
+        "min_time": 3,
+        "max_time": 28,
+        "min_time_needed": 5,
+        "max_departures": 5
+    },
+    {
+        "name": "Magnusstr.",
+        "station_id": 900000194501,
+        "s_bahn": False,
+        "tram": False,
+        "bus": True,
+        "min_time": 3,
+        "max_time": 24,
+        "min_time_needed": 5,
+        "max_departures": 5
+    }
+]
+
+event_configs = [
+    {
+        "date": "Morgen",
+        "description": [
+            "Auftaktsparty ab 17 Uhr!",
+        ],
+    },
+    {
+        "date": "22. Mai",
+        "description": [
+            "Schachturnier",
+        ],
+    },
+    {
+        "date": "30. Mai",
+        "description": [
+            "Mops Geburtstag",
+        ],
+    },
+    {
+        "date": "14. Juni",
+        "description": [
+            "Hörsaalkino Special:",
+            "  \"Jim Knopf und Lukas",
+            "   der Lokomotivführer\"",
+            "mit Vortrag von Dr. Lohse",
+        ],
+    },
+]
+
 setup(canvas)
 
-s = [
-    ("S Adlershof",900193002, True, False, True, 9, 33, 11, 6),
-    ("Karl-Ziegler-Str",900000194016, False, True, False, 3, 25, 5, 5),
-    ("Magnusstr.",900000194501, False, False, True, 3, 21, 5, 5)
-]
 stations = []
-station_display_offset = 0
-for j, sa in enumerate(s):
-    if j > 0:
-        station_display_offset += stations[j-1].get_dep_list_length() + 1
-    stations.append(Station(sa[0],sa[1],sa[2],sa[3], sa[4], sa[5], sa[6], sa[7], sa[8], station_display_offset))
+station_display_offset = 0 # pylint: disable=invalid-name
 
-def mainloop():
+for idx, station_config in enumerate(station_configs):
+    if idx > 0:
+        station_display_offset += stations[idx-1].get_dep_list_length() + 1
+
+    stations.append(Station(station_config, station_display_offset))
+
+def mainloop(): # pylint: disable=missing-function-docstring
     for station in stations[:1]:
         station.departure_list()
-    root.after(60000, mainloop) #Wait for a minute
 
-root.after(1000, mainloop) # run first time after 1000ms (1s)
+    # Refresh every minute
+    root.after(60 * 1000, mainloop)
+
+# First refresh after 1 second
+root.after(1000, mainloop)
 root.mainloop()
