@@ -236,10 +236,10 @@ canvas = tk.Canvas()
 # https://stackoverflow.com/a/3430395
 image_path = pathlib.Path(__file__).parent.resolve().joinpath("src/images/")
 
-empty = Image.open(image_path.joinpath("Empty.png")).resize((1,1))
+empty = Image.open(image_path.joinpath("Empty.png")).resize(size=(1,1))
 empty = ImageTk.PhotoImage(empty)
 
-hu_logo_image = Image.open(image_path.joinpath("Huberlin-logo.png")).resize((100,100))
+hu_logo_image = Image.open(image_path.joinpath("Huberlin-logo.png")).resize(size=(100,100))
 hu_logo_image = ImageTk.PhotoImage(hu_logo_image)
 
 imagenames = get_images()
@@ -261,7 +261,7 @@ def mainloop():  # pylint: disable=missing-function-docstring
         station.departure_list()
 
     # Refresh every minute
-    root.after(10 * 1000, mainloop)
+    root.after(60_000, mainloop)
 
 # First refresh after 1 second
 root.after(1000, mainloop)

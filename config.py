@@ -42,7 +42,8 @@ with open("config.kdl", "r", encoding="utf-8") as file:
 
     stations = [
         Station(**{
-            child.name: int(arg) if isinstance((arg := child.args[0]), float) else arg  # type: ignore
+            # type: ignore
+            child.name: int(arg) if isinstance((arg := child.args[0]), float) else arg
             for child in station.nodes
         })
         for station in doc.get("stations").getAll("station")  # type: ignore
