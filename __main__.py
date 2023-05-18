@@ -10,12 +10,13 @@ import re
 import pathlib
 import tkinter as tk
 from functools import reduce
+from dataclasses import dataclass, asdict, field
 from datetime import datetime
 from dateutil import parser as dateparser
 import requests
 from PIL import ImageTk, Image
 
-from config import get_events, get_stations, Station as StationData
+from config import get_events, get_stations, Station as ConfigStation
 
 
 FONT_DEFAULT = ("Helvetica", 20, "bold")
@@ -54,22 +55,15 @@ class OutgoingConnection:
         canvas.itemconfig(self.direction, text=direction)
         canvas.itemconfig(self.when, text=when)
 
-class Station:
+@dataclass
+class Station(ConfigStation):
     """
     Displays realtime departure information for a single station.
     """
-    def __init__(self, config: StationData, display_offset):
-        self.name = config.name
-        self.station_id = config.station_id
-        self.s_bahn = config.s_bahn
-        self.tram = config.tram
-        self.bus = config.bus
-        self.min_time = config.min_time
-        self.max_time = config.max_time
-        self.min_time_needed = config.min_time_needed
-        self.max_departures = config.max_departures
-        self.display_offset = display_offset
+    display_offset: int
+    departures: list = field(init=False)
 
+    def __post_init__(self):
         self.departures = []
 
         self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor="w")) # pylint: disable=line-too-long
@@ -258,7 +252,7 @@ for idx, station_config in enumerate(get_stations()):
     if idx > 0:
         station_display_offset += stations[idx-1].get_departure_count() + 1
 
-    stations.append(Station(station_config, station_display_offset))
+    stations.append(Station(**asdict(station_config), display_offset=station_display_offset))
 
 def mainloop(): # pylint: disable=missing-function-docstring
     for station in stations[:1]:
