@@ -16,7 +16,7 @@ from dateutil import parser as dateparser
 import requests
 from PIL import ImageTk, Image
 
-from config import get_events, get_stations, Station as ConfigStation
+from config import events as event_configs, stations as station_configs, Station as StationConfig
 
 
 FONT_DEFAULT = ("Helvetica", 20, "bold")
@@ -56,7 +56,7 @@ class OutgoingConnection:
         canvas.itemconfig(self.when, text=when)
 
 @dataclass
-class Station(ConfigStation):
+class Station(StationConfig):
     """
     Displays realtime departure information for a single station.
     """
@@ -202,7 +202,7 @@ def setup(ctx):
     ctx.pack(fill=tk.BOTH, expand=True)
 
     event_display_offset = 300
-    for event_config in get_events():
+    for event_config in event_configs:
         ctx.create_text(650, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw")  # pylint: disable=line-too-long
 
         for line in event_config.text.split("\n"):
@@ -248,7 +248,7 @@ setup(canvas)
 stations = []
 station_display_offset = 0
 
-for idx, station_config in enumerate(get_stations()):
+for idx, station_config in enumerate(station_configs):
     if idx > 0:
         station_display_offset += stations[idx-1].get_departure_count() + 1
 

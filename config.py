@@ -50,15 +50,3 @@ with open("config.kdl", "r", encoding="utf-8") as file:
             min_time_needed=int(station.get("min_time_needed").args[0]),  # type: ignore
             max_departures=int(station.get("max_departures").args[0])  # type: ignore
         ))
-
-def get_events() -> list[Event]:
-    """
-    Returns all events.
-    """
-    return events
-
-def get_stations() -> list[Station]:
-    """
-    Returns all stations.
-    """
-    return stations
