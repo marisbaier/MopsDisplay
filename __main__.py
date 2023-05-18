@@ -66,7 +66,7 @@ class Station(ConfigStation):
     def __post_init__(self):
         self.departures = []
 
-        self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor="w")) # pylint: disable=line-too-long
+        self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor="w"))  # pylint: disable=line-too-long
         self.departure_list()
 
 
@@ -119,7 +119,7 @@ class Station(ConfigStation):
         """
         Constructs the URL for the API request.
         """
-        return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}" # pylint: disable=line-too-long
+        return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"  # pylint: disable=line-too-long
 
 def fetch_departures(url, max_departures):
     """
@@ -203,7 +203,7 @@ def setup(ctx):
 
     event_display_offset = 300
     for event_config in get_events():
-        ctx.create_text(650, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw") # pylint: disable=line-too-long
+        ctx.create_text(650, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw")  # pylint: disable=line-too-long
 
         for line in event_config.text.split("\n"):
             ctx.create_text(750, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw")
@@ -254,7 +254,7 @@ for idx, station_config in enumerate(get_stations()):
 
     stations.append(Station(**asdict(station_config), display_offset=station_display_offset))
 
-def mainloop(): # pylint: disable=missing-function-docstring
+def mainloop():  # pylint: disable=missing-function-docstring
     for station in stations[:1]:
         station.departure_list()
 
