@@ -5,16 +5,18 @@ Authored-By: Maris Baier
 Co-Authored-By: Hazel Reimer
 """
 
-import os
-import re
-import pathlib
-import tkinter as tk
-from functools import reduce
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
+from functools import reduce
+from json.decoder import JSONDecodeError
+import os
+import pathlib
+import re
+import tkinter as tk
+
 from dateutil import parser as dateparser
-import requests
 from PIL import ImageTk, Image
+import requests
 
 from config import events as event_configs, stations as station_configs, Station as StationConfig
 
@@ -128,7 +130,7 @@ def fetch_departures(url, max_departures):
     while True:
         try:
             response = requests.get(url, timeout=30000).json()
-        except requests.exceptions.Timeout:
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, JSONDecodeError):
             continue
         else:
             departures = []
@@ -255,11 +257,11 @@ for idx, station_config in enumerate(station_configs):
     stations.append(Station(**asdict(station_config), display_offset=station_display_offset))
 
 def mainloop():  # pylint: disable=missing-function-docstring
-    for station in stations[:1]:
+    for station in stations:
         station.departure_list()
 
     # Refresh every minute
-    root.after(60 * 1000, mainloop)
+    root.after(10 * 1000, mainloop)
 
 # First refresh after 1 second
 root.after(1000, mainloop)
