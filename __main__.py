@@ -158,21 +158,6 @@ def calculate_remaining_time(json):
 
     return int(difference)
 
-def get_images():
-    """
-    Returns a list of the names of all images in the src/images folder.
-    """
-    out = []
-
-    # https://stackoverflow.com/a/3430395
-    root_path = pathlib.Path(__file__).parent.resolve()
-
-    for file in os.scandir(root_path.joinpath("src/images/")):
-        if re.match(r"(S?[0-9]+|bus|tram)\.png", file.name):
-            out.append(file.name.split(".")[0])
-
-    return out
-
 def resolve_image(departure):
     """
     Returns the line image for the given line name.
@@ -213,18 +198,18 @@ def setup(ctx):
 
         event_display_offset += 5
 
-def load_image(acc, name):
+def load_image(file: pathlib.Path):
     """
     Loads an image for one of the connections from the src/images folder.
     """
-    image = Image.open(image_path.joinpath(f"{name}.png"))
-    if name.startswith("S"):
+    image = Image.open(file)
+    if file.name.startswith("S"):
         image.thumbnail((40,40), Image.LANCZOS)
     else:
         image.thumbnail((30,30), Image.LANCZOS)
     image = ImageTk.PhotoImage(image)
 
-    return {**acc, **{name: image}}
+    return image
 
 
 ### Setup
@@ -242,8 +227,10 @@ empty = ImageTk.PhotoImage(empty)
 hu_logo_image = Image.open(image_path.joinpath("Huberlin-logo.png")).resize(size=(100,100))
 hu_logo_image = ImageTk.PhotoImage(hu_logo_image)
 
-imagenames = get_images()
-images = reduce(load_image, imagenames, {})
+images = {
+    file.stem: load_image(file)
+    for file in (pathlib.Path(__file__).parent.resolve() / "src/images/").glob("*.png")
+}
 
 setup(canvas)
 
