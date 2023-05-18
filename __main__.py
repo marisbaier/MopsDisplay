@@ -7,9 +7,7 @@ Co-Authored-By: Hazel Reimer
 
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
-from functools import reduce
 from json.decoder import JSONDecodeError
-import os
 import pathlib
 import re
 import tkinter as tk
