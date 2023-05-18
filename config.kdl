@@ -1,0 +1,58 @@
+events {
+    event {
+        date "Morgen"
+        text "Auftaktsparty ab 17 Uhr!"
+    }
+    event {
+        date "22. Mai"
+        text "Schachturnier"
+    }
+    event {
+        date "30. Mai"
+        text "Mops Geburtstag"
+    }
+    event {
+        date "14. Juni"
+        text \
+"Hörsaalkino Special:
+  \"Jim Knopf und Lukas
+   der Lokomotivführer\"
+mit Vortrag von Dr. Lohse"
+    }
+}
+
+stations {
+    station {
+        name "S Adlershof"
+        station_id 900193002
+        s_bahn true
+        tram false
+        bus false
+        min_time 9
+        max_time 42
+        min_time_needed 11
+        max_departures 6
+    }
+    station {
+        name "Karl-Ziegler-Str"
+        station_id 900000194016
+        s_bahn false
+        tram true
+        bus false
+        min_time 3
+        max_time 28
+        min_time_needed 5
+        max_departures 5
+    }
+    station {
+        name "Magnusstr."
+        station_id 900000194501
+        s_bahn false
+        tram false
+        bus true
+        min_time 3
+        max_time 24
+        min_time_needed 5
+        max_departures 5
+    }
+}

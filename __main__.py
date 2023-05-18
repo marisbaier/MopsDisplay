@@ -13,9 +13,10 @@ from functools import reduce
 from datetime import datetime
 from dateutil import parser as dateparser
 import requests
-
-
 from PIL import ImageTk, Image
+
+from config import get_events, get_stations, Station as StationData
+
 
 FONT_DEFAULT = ("Helvetica", 20, "bold")
 FONT_TITLE_2 = ("Helvetica", 28, "bold")
@@ -57,16 +58,16 @@ class Station:
     """
     Displays realtime departure information for a single station.
     """
-    def __init__(self, config, display_offset):
-        self.name = config["name"]
-        self.station_id = config["station_id"]
-        self.s_bahn = config["s_bahn"]
-        self.tram = config["tram"]
-        self.bus = config["bus"]
-        self.min_time = config["min_time"]
-        self.max_time = config["max_time"]
-        self.min_time_needed = config["min_time_needed"]
-        self.max_departures = config["max_departures"]
+    def __init__(self, config: StationData, display_offset):
+        self.name = config.name
+        self.station_id = config.station_id
+        self.s_bahn = config.s_bahn
+        self.tram = config.tram
+        self.bus = config.bus
+        self.min_time = config.min_time
+        self.max_time = config.max_time
+        self.min_time_needed = config.min_time_needed
+        self.max_departures = config.max_departures
         self.display_offset = display_offset
 
         self.departures = []
@@ -207,10 +208,10 @@ def setup(ctx):
     ctx.pack(fill=tk.BOTH, expand=True)
 
     event_display_offset = 300
-    for event_config in event_configs:
-        ctx.create_text(650, event_display_offset, text=event_config["date"], font=FONT_DEFAULT, anchor="nw") # pylint: disable=line-too-long
+    for event_config in get_events():
+        ctx.create_text(650, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw") # pylint: disable=line-too-long
 
-        for line in event_config["description"]:
+        for line in event_config.text.split("\n"):
             ctx.create_text(750, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw")
             event_display_offset += 25
 
@@ -248,78 +249,12 @@ hu_logo_image = ImageTk.PhotoImage(hu_logo_image)
 imagenames = get_images()
 images = reduce(load_image, imagenames, {})
 
-station_configs = [
-    {
-        "name": "S Adlershof",
-        "station_id": 900193002,
-        "s_bahn": True,
-        "tram": False,
-        "bus": True,
-        "min_time": 9,
-        "max_time": 42,
-        "min_time_needed": 11,
-        "max_departures": 6
-    },
-    {
-        "name": "Karl-Ziegler-Str",
-        "station_id": 900000194016,
-        "s_bahn": False,
-        "tram": True,
-        "bus": False,
-        "min_time": 3,
-        "max_time": 28,
-        "min_time_needed": 5,
-        "max_departures": 5
-    },
-    {
-        "name": "Magnusstr.",
-        "station_id": 900000194501,
-        "s_bahn": False,
-        "tram": False,
-        "bus": True,
-        "min_time": 3,
-        "max_time": 24,
-        "min_time_needed": 5,
-        "max_departures": 5
-    }
-]
-
-event_configs = [
-    {
-        "date": "Morgen",
-        "description": [
-            "Auftaktsparty ab 17 Uhr!",
-        ],
-    },
-    {
-        "date": "22. Mai",
-        "description": [
-            "Schachturnier",
-        ],
-    },
-    {
-        "date": "30. Mai",
-        "description": [
-            "Mops Geburtstag",
-        ],
-    },
-    {
-        "date": "14. Juni",
-        "description": [
-            "Hörsaalkino Special:",
-            "  \"Jim Knopf und Lukas",
-            "   der Lokomotivführer\"",
-            "mit Vortrag von Dr. Lohse",
-        ],
-    },
-]
-
 setup(canvas)
 
 stations = []
-station_display_offset = 0 # pylint: disable=invalid-name
+station_display_offset = 0
 
-for idx, station_config in enumerate(station_configs):
+for idx, station_config in enumerate(get_stations()):
     if idx > 0:
         station_display_offset += stations[idx-1].get_departure_count() + 1
 
