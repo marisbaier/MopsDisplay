@@ -44,8 +44,8 @@ class OutgoingConnection:
 
         self.when_int = calculate_remaining_time(requestjson)
 
-        self.direction = canvas.create_text(75+40, ypos, text=direct, font=FONT_DEFAULT, anchor="w")
-        self.when = canvas.create_text(540, ypos, text=self.when_int, font=FONT_DEFAULT, anchor="e")
+        self.direction = canvas.create_text(75+40, ypos, text=direct, font=FONT_DEFAULT, anchor="w", fill="#fff")
+        self.when = canvas.create_text(540, ypos, text=self.when_int, font=FONT_DEFAULT, anchor="e", fill="#fff")
 
     def change(self, image, direction, when):
         """
@@ -66,7 +66,7 @@ class Station(StationConfig):
     def __post_init__(self):
         self.departures = []
 
-        self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor="w"))  # pylint: disable=line-too-long
+        self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor="w", fill="#fff"))  # pylint: disable=line-too-long
         self.departure_list()
 
 
@@ -182,16 +182,17 @@ def setup(ctx):
     Sets up the initial canvas state.
     This includes the background, the logo and the event information.
     """
+    ctx.config(bg='#141416')
     ctx.create_rectangle(580, 0, 1200, 800, fill="#165096", outline="#165096")
     ctx.create_image(700, 100, image=hu_logo_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
     event_display_offset = 300
     for event_config in event_configs:
-        ctx.create_text(650, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw")  # pylint: disable=line-too-long
+        ctx.create_text(650, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw", fill="#fff")  # pylint: disable=line-too-long
 
         for line in event_config.text.split("\n"):
-            ctx.create_text(750, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw")
+            ctx.create_text(750, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw", fill="#fff")
             event_display_offset += 25
 
         event_display_offset += 5
