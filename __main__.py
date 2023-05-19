@@ -19,7 +19,7 @@ import requests
 from config import events as event_configs, stations as station_configs, Station as StationConfig
 
 
-FONT_DEFAULT = ("Helvetica", 20, "bold")
+FONT_DEFAULT = ("Helvetica", 18, "bold")
 FONT_TITLE_2 = ("Helvetica", 28, "bold")
 
 class OutgoingConnection:
