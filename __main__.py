@@ -217,7 +217,7 @@ root.attributes("-fullscreen", True)
 canvas = tk.Canvas()
 
 # https://stackoverflow.com/a/3430395
-image_path = pathlib.Path(__file__).parent.resolve().joinpath("src/images/")
+image_path = pathlib.Path(__file__).parent.resolve() / "src/images/"
 
 empty = Image.open(image_path.joinpath("Empty.png")).resize(size=(1,1))
 empty = ImageTk.PhotoImage(empty)
@@ -227,7 +227,7 @@ hu_logo_image = ImageTk.PhotoImage(hu_logo_image)
 
 images = {
     file.stem: load_image(file)
-    for file in (pathlib.Path(__file__).parent.resolve() / "src/images/").glob("*.png")
+    for file in (image_path).glob("*.png")
 }
 
 setup(canvas)

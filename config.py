@@ -2,6 +2,7 @@
 Utility to parse KDL config file for events and stations.
 """
 from dataclasses import dataclass
+import pathlib
 from kdl import parse
 
 doc = None  # pylint: disable=invalid-name
@@ -29,7 +30,9 @@ class Station:
     min_time_needed: int
     max_departures: int
 
-with open("config.kdl", "r", encoding="utf-8") as file:
+config_path = image_path = pathlib.Path(__file__).parent.resolve() / "config.kdl"
+
+with open(config_path, "r", encoding="utf-8") as file:
     doc = parse(file.read())
 
     events = [
