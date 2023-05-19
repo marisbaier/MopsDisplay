@@ -192,7 +192,7 @@ def setup(ctx):
         ctx.create_text(650, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw", fill="#fff")  # pylint: disable=line-too-long
 
         for line in event_config.text.split("\n"):
-            ctx.create_text(750, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw", fill="#fff")
+            ctx.create_text(800, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw", fill="#fff")
             event_display_offset += 25
 
         event_display_offset += 5
