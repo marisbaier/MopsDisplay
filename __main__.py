@@ -66,7 +66,7 @@ class Station(StationConfig):
     def __post_init__(self):
         self.departures = []
 
-        self.departures.append(canvas.create_text(50, 100+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor="w", fill="#fff"))  # pylint: disable=line-too-long
+        self.departures.append(canvas.create_text(50, 60+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor="w", fill="#fff"))  # pylint: disable=line-too-long
         self.departure_list()
 
 
@@ -85,7 +85,7 @@ class Station(StationConfig):
             add = len(self.departures)
             for i,departure in enumerate(departures[len(self.departures):-1]):
                 i += add
-                connection = OutgoingConnection(departure, ypos=100+(i+self.display_offset)*40)
+                connection = OutgoingConnection(departure, ypos=60+(i+self.display_offset)*40)
                 self.departures.append(connection)
 
         for i,displayedobject in enumerate(self.departures[1:]):
@@ -179,20 +179,21 @@ def resolve_image(departure):
 
 def setup(ctx):
     """
-    Sets up the initial canvas state.
+    Sets up the initial canvas state. Display resolution at Mops is 1280x1024
     This includes the background, the logo and the event information.
     """
     ctx.config(bg='#141416')
-    ctx.create_rectangle(750, 0, 1250, 1014, fill="#165096", outline="#165096")
+    ctx.create_rectangle(750, 0, 1280, 1024, fill="#165096", outline="#165096")
     ctx.create_image(850, 100, image=hu_logo_image)
+    ctx.create_image(1000, 600, image=bike_route_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
-    event_display_offset = 300
+    event_display_offset = 200
     for event_config in event_configs:
-        ctx.create_text(650, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw", fill="#fff")  # pylint: disable=line-too-long
+        ctx.create_text(800, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw", fill="#fff")  # pylint: disable=line-too-long
 
         for line in event_config.text.split("\n"):
-            ctx.create_text(800, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw", fill="#fff")
+            ctx.create_text(930, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw", fill="#fff")
             event_display_offset += 25
 
         event_display_offset += 5
@@ -226,6 +227,9 @@ empty = ImageTk.PhotoImage(empty)
 hu_logo_image = Image.open(image_path.joinpath("Huberlin-logo.png")).resize(size=(100,100))
 hu_logo_image = ImageTk.PhotoImage(hu_logo_image)
 
+bike_route_image = Image.open(image_path.joinpath("bike_route.png")).resize(size=(400,415))
+bike_route_image = ImageTk.PhotoImage(bike_route_image)
+
 images = {
     file.stem: load_image(file)
     for file in (image_path).glob("*.png")
@@ -250,5 +254,5 @@ def mainloop():  # pylint: disable=missing-function-docstring
     root.after(5_000, mainloop)
 
 # First refresh after 1 second
-root.after(1000, mainloop)
+root.after(5_000, mainloop)
 root.mainloop()

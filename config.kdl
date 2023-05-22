@@ -27,7 +27,7 @@ stations {
         min_time 9
         max_time 42
         min_time_needed 11
-        max_departures 6
+        max_departures 9
     }
     station {
         name "Karl-Ziegler-Str"
