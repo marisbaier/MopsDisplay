@@ -1,10 +1,6 @@
 events {
     event {
-        date "Morgen"
-        text "Auftaktsparty ab 17 Uhr!"
-    }
-    event {
-        date "22. Mai"
+        date "27. Mai"
         text "Schachturnier"
     }
     event {

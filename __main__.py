@@ -136,9 +136,9 @@ def fetch_departures(url, max_departures):
             for departure in response:
                 trip_id = departure["tripId"]
 
-                exists = trip_id in trip_ids
+                is_in_trip_ids = trip_id in trip_ids
                 is_scheduled = departure["when"] is not None
-                if is_scheduled and not exists and len(departures) <= max_departures:
+                if is_scheduled and not is_in_trip_ids and len(departures) <= max_departures:
                     departures.append(departure)
                     trip_ids.append(trip_id)
             break
@@ -183,8 +183,8 @@ def setup(ctx):
     This includes the background, the logo and the event information.
     """
     ctx.config(bg='#141416')
-    ctx.create_rectangle(580, 0, 1200, 800, fill="#165096", outline="#165096")
-    ctx.create_image(700, 100, image=hu_logo_image)
+    ctx.create_rectangle(750, 0, 1250, 1014, fill="#165096", outline="#165096")
+    ctx.create_image(850, 100, image=hu_logo_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
     event_display_offset = 300
@@ -247,7 +247,7 @@ def mainloop():  # pylint: disable=missing-function-docstring
         station.departure_list()
 
     # Refresh every minute
-    root.after(60_000, mainloop)
+    root.after(5_000, mainloop)
 
 # First refresh after 1 second
 root.after(1000, mainloop)
