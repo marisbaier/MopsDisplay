@@ -185,10 +185,10 @@ def setup(ctx):
     ctx.config(bg='#141416')
     ctx.create_rectangle(750, 0, 1280, 1024, fill="#165096", outline="#165096")
     ctx.create_image(850, 100, image=hu_logo_image)
-    ctx.create_image(1000, 600, image=bike_route_image)
+    ctx.create_image(1000, 680, image=bike_route_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
-    event_display_offset = 200
+    event_display_offset = 230
     for event_config in event_configs:
         ctx.create_text(800, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw", fill="#fff")  # pylint: disable=line-too-long
 
