@@ -188,7 +188,8 @@ def setup(ctx):
     ctx.create_image(1000, 680, image=bike_route_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
-    event_display_offset = 230
+    event_display_offset = 250
+    ctx.create_text(800, event_display_offset-35, text='Nächste Veranstaltungen:', font=FONT_DEFAULT, anchor="nw", fill='#fff')
     for event_config in event_configs:
         ctx.create_text(800, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw", fill="#fff")  # pylint: disable=line-too-long
 

@@ -10,10 +10,11 @@ events {
     event {
         date "14. Juni"
         text \
-"Hörsaalkino Special:
-  \"Jim Knopf und Lukas
-   der Lokomotivführer\"
-mit Vortrag von Dr. Lohse"
+"Hörsaalkino Special"
+    }
+    event {
+        date "23. Juni"
+        text "Bergfest"
     }
 }
 
