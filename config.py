@@ -25,6 +25,7 @@ class Station:
     s_bahn: bool
     tram: bool
     bus: bool
+    express: bool
     min_time: int
     max_time: int
     min_time_needed: int

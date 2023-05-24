@@ -82,7 +82,7 @@ class Station(StationConfig):
         """
         try:
             departures = fetch_departures(self.get_url(), self.max_departures)
-        except:
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, JSONDecodeError):
             self.disable()
         else:
             if len(departures)>len(self.departures):
@@ -123,7 +123,7 @@ class Station(StationConfig):
         """
         Constructs the URL for the API request.
         """
-        return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"  # pylint: disable=line-too-long
+        return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&express={self.express}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"  # pylint: disable=line-too-long
     
     def disable(self):
         '''
