@@ -47,13 +47,13 @@ class OutgoingConnection:
         self.direction = canvas.create_text(75+40, ypos, text=direct, font=FONT_DEFAULT, anchor="w", fill="#fff")
         self.when = canvas.create_text(540, ypos, text=self.when_int, font=FONT_DEFAULT, anchor="e", fill="#fff")
 
-    def change(self, image, direction, when):
+    def change(self, image, direction, when, fill='white'):
         """
         Updates the displayed information on the canvas with the provided parameters.
         """
         canvas.itemconfig(self.image, image = image)
-        canvas.itemconfig(self.direction, text=direction)
-        canvas.itemconfig(self.when, text=when)
+        canvas.itemconfig(self.direction, text=direction, fill=fill)
+        canvas.itemconfig(self.when, text=when, fill=fill)
 
 @dataclass
 class Station(StationConfig):
@@ -80,34 +80,38 @@ class Station(StationConfig):
 
         This is done regularly to keep the displayed information up to date.
         """
-        departures = fetch_departures(self.get_url(), self.max_departures)
-        if len(departures)>len(self.departures):
-            add = len(self.departures)
-            for i,departure in enumerate(departures[len(self.departures):-1]):
-                i += add
-                connection = OutgoingConnection(departure, ypos=60+(i+self.display_offset)*40)
-                self.departures.append(connection)
+        try:
+            departures = fetch_departures(self.get_url(), self.max_departures)
+        except:
+            self.disable()
+        else:
+            if len(departures)>len(self.departures):
+                add = len(self.departures)
+                for i,departure in enumerate(departures[len(self.departures):-1]):
+                    i += add
+                    connection = OutgoingConnection(departure, ypos=60+(i+self.display_offset)*40)
+                    self.departures.append(connection)
 
-        for i,displayedobject in enumerate(self.departures[1:]):
-            if i<len(departures):
-                departure = departures[i]
-                time_remaining = calculate_remaining_time(departure)
+            for i,displayedobject in enumerate(self.departures[1:]):
+                if i<len(departures):
+                    departure = departures[i]
+                    time_remaining = calculate_remaining_time(departure)
 
-                direct = departure["direction"]
+                    direct = departure["direction"]
 
-                if len(direct) > 35:
-                    direct = direct[:35] + "..."
+                    if len(direct) > 35:
+                        direct = direct[:35] + "..."
 
 
-                lineimage = resolve_image(departure)
-                displayedobject.change(lineimage, direct, time_remaining)
+                    lineimage = resolve_image(departure)
+                    displayedobject.change(lineimage, direct, time_remaining)
 
-                if time_remaining < self.min_time_needed:
-                    canvas.itemconfig(displayedobject.when, fill="red")
+                    if time_remaining < self.min_time_needed:
+                        canvas.itemconfig(displayedobject.when, fill="red")
+                    else:
+                        canvas.itemconfig(displayedobject.when, fill="white")
                 else:
-                    canvas.itemconfig(displayedobject.when, fill="white")
-            else:
-                displayedobject.change(empty,"","")
+                    displayedobject.change(empty,"","")
 
     def get_departure_count(self):
         """
@@ -120,28 +124,29 @@ class Station(StationConfig):
         Constructs the URL for the API request.
         """
         return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"  # pylint: disable=line-too-long
+    
+    def disable(self):
+        '''
+        Hints that departures couldn't be fetched
+        '''
+        for outgoingconnection in self.departures[1:]:
+            outgoingconnection.change(empty, '''couldn't fetch''', '', fill='grey')
 
 def fetch_departures(url, max_departures):
     """
     Requests the API for departure information.
     """
-    while True:
-        try:
-            response = requests.get(url, timeout=30000).json()
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, JSONDecodeError):
-            continue
-        else:
-            departures = []
-            trip_ids = []
-            for departure in response:
-                trip_id = departure["tripId"]
+    response = requests.get(url, timeout=30000).json()
+    departures = []
+    trip_ids = []
+    for departure in response:
+        trip_id = departure["tripId"]
 
-                is_in_trip_ids = trip_id in trip_ids
-                is_scheduled = departure["when"] is not None
-                if is_scheduled and not is_in_trip_ids and len(departures) <= max_departures:
-                    departures.append(departure)
-                    trip_ids.append(trip_id)
-            break
+        is_in_trip_ids = trip_id in trip_ids
+        is_scheduled = departure["when"] is not None
+        if is_scheduled and not is_in_trip_ids and len(departures) <= max_departures:
+            departures.append(departure)
+            trip_ids.append(trip_id)
     return departures
 
 def calculate_remaining_time(json):
