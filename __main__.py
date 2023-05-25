@@ -7,7 +7,6 @@ Co-Authored-By: Hazel Reimer
 
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
-from json.decoder import JSONDecodeError
 import pathlib
 import re
 import tkinter as tk
@@ -83,7 +82,7 @@ class Station(StationConfig):
         """
         try:
             departures = fetch_departures(self.get_url(), self.max_departures)
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, JSONDecodeError):
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.JSONDecodeError, KeyError):
             self.disable()
         else:
             if len(departures)>len(self.departures):
@@ -226,8 +225,8 @@ def load_image(file: pathlib.Path):
 ### Setup
 
 root = tk.Tk()
-#root.attributes("-fullscreen", True)
-root.geometry("1024x768")
+root.attributes("-fullscreen", True)
+#root.geometry("1024x768")
 canvas = tk.Canvas()
 
 # https://stackoverflow.com/a/3430395
