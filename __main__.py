@@ -188,9 +188,13 @@ def setup(ctx):
     Sets up the initial canvas state. Display resolution at Mops is 1280x1024
     This includes the background, the logo and the event information.
     """
+    global clock
     ctx.config(bg='#141416')
     ctx.create_rectangle(gui_middle, 0, 1280, 1024, fill="#165096", outline="#165096")
     ctx.create_image(gui_middle+100, 100, image=hu_logo_image)
+    clock = ctx.create_text(gui_middle+270, 70, text=datetime.now().strftime('%H:%M'), font=FONT_TITLE_2, fill='#fff')
+    ctx.create_image(gui_middle+150, 500, image=RingbahnImage)
+    ctx.create_text(gui_middle+250, 500, text="RINGBAHNTOUR\nSAUFEN\nLETSGOOOOO", fil='#fff')
     #ctx.create_image(1000, 680, image=bike_route_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
@@ -222,8 +226,8 @@ def load_image(file: pathlib.Path):
 ### Setup
 
 root = tk.Tk()
-root.attributes("-fullscreen", True)
-#root.geometry("1024x768")
+#root.attributes("-fullscreen", True)
+root.geometry("1024x768")
 canvas = tk.Canvas()
 
 # https://stackoverflow.com/a/3430395
@@ -231,6 +235,8 @@ image_path = pathlib.Path(__file__).parent.resolve() / "src/images/"
 
 empty = Image.open(image_path.joinpath("Empty.png")).resize(size=(1,1))
 empty = ImageTk.PhotoImage(empty)
+
+RingbahnImage = ImageTk.PhotoImage(Image.open(image_path.joinpath('Ringbahntour.png')).resize(size=(200, 350)))
 
 hu_logo_image = Image.open(image_path.joinpath("Huberlin-logo.png")).resize(size=(100,100))
 hu_logo_image = ImageTk.PhotoImage(hu_logo_image)
@@ -257,6 +263,7 @@ for idx, station_config in enumerate(station_configs):
 def mainloop():  # pylint: disable=missing-function-docstring
     for station in stations:
         station.departure_list()
+    canvas.itemconfig(clock, text=datetime.now().strftime('%H:%M'))
 
     # Refresh every minute
     root.after(5_000, mainloop)
