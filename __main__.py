@@ -19,8 +19,9 @@ import requests
 from config import events as event_configs, stations as station_configs, Station as StationConfig
 
 
-FONT_DEFAULT = ("Helvetica", 18, "bold")
-FONT_TITLE_2 = ("Helvetica", 28, "bold")
+FONT_DEFAULT = ("Helvetica", 14, "bold")
+FONT_TITLE_2 = ("Helvetica", 24, "bold")
+gui_middle = 768/1.17
 
 class OutgoingConnection:
     """
@@ -66,7 +67,7 @@ class Station(StationConfig):
     def __post_init__(self):
         self.departures = []
 
-        self.departures.append(canvas.create_text(50, 60+self.display_offset*40, text=self.name,font=FONT_TITLE_2, anchor="w", fill="#fff"))  # pylint: disable=line-too-long
+        self.departures.append(canvas.create_text(50, 60+self.display_offset*30, text=self.name,font=FONT_TITLE_2, anchor="w", fill="#fff"))  # pylint: disable=line-too-long
         self.departure_list()
 
 
@@ -89,7 +90,7 @@ class Station(StationConfig):
                 add = len(self.departures)
                 for i,departure in enumerate(departures[len(self.departures):-1]):
                     i += add
-                    connection = OutgoingConnection(departure, ypos=60+(i+self.display_offset)*40)
+                    connection = OutgoingConnection(departure, ypos=70+(i+self.display_offset)*30)
                     self.departures.append(connection)
 
             for i,displayedobject in enumerate(self.departures[1:]):
@@ -188,18 +189,18 @@ def setup(ctx):
     This includes the background, the logo and the event information.
     """
     ctx.config(bg='#141416')
-    ctx.create_rectangle(750, 0, 1280, 1024, fill="#165096", outline="#165096")
-    ctx.create_image(850, 100, image=hu_logo_image)
+    ctx.create_rectangle(gui_middle, 0, 1280, 1024, fill="#165096", outline="#165096")
+    ctx.create_image(gui_middle+100, 100, image=hu_logo_image)
     #ctx.create_image(1000, 680, image=bike_route_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
     event_display_offset = 250
-    ctx.create_text(800, event_display_offset-35, text='Nächste Veranstaltungen:', font=FONT_DEFAULT, anchor="nw", fill='#fff')
+    ctx.create_text(gui_middle+50, event_display_offset-35, text='Nächste Veranstaltungen:', font=FONT_DEFAULT, anchor="nw", fill='#fff')
     for event_config in event_configs:
-        ctx.create_text(800, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw", fill="#fff")  # pylint: disable=line-too-long
+        ctx.create_text(gui_middle+50, event_display_offset, text=event_config.date, font=FONT_DEFAULT, anchor="nw", fill="#fff")  # pylint: disable=line-too-long
 
         for line in event_config.text.split("\n"):
-            ctx.create_text(930, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw", fill="#fff")
+            ctx.create_text(gui_middle+130, event_display_offset, text=line, font=FONT_DEFAULT, anchor="nw", fill="#fff")
             event_display_offset += 25
 
         event_display_offset += 5
@@ -222,6 +223,7 @@ def load_image(file: pathlib.Path):
 
 root = tk.Tk()
 root.attributes("-fullscreen", True)
+#root.geometry("1024x768")
 canvas = tk.Canvas()
 
 # https://stackoverflow.com/a/3430395
