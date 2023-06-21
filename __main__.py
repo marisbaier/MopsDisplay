@@ -123,7 +123,7 @@ class Station(StationConfig):
         """
         Constructs the URL for the API request.
         """
-        return f"https://v5.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&express={self.express}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"  # pylint: disable=line-too-long
+        return f"https://v6.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&express={self.express}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"  # pylint: disable=line-too-long
     
     def disable(self):
         '''
@@ -139,7 +139,7 @@ def fetch_departures(url, max_departures):
     response = requests.get(url, timeout=30000).json()
     departures = []
     trip_ids = []
-    for departure in response:
+    for departure in response['departures']:
         trip_id = departure["tripId"]
 
         is_in_trip_ids = trip_id in trip_ids
@@ -190,7 +190,7 @@ def setup(ctx):
     ctx.config(bg='#141416')
     ctx.create_rectangle(750, 0, 1280, 1024, fill="#165096", outline="#165096")
     ctx.create_image(850, 100, image=hu_logo_image)
-    ctx.create_image(1000, 680, image=bike_route_image)
+    #ctx.create_image(1000, 680, image=bike_route_image)
     ctx.pack(fill=tk.BOTH, expand=True)
 
     event_display_offset = 250

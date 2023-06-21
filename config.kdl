@@ -1,20 +1,11 @@
 events {
     event {
-        date "27. Mai"
-        text "Schachturnier"
-    }
-    event {
-        date "30. Mai"
-        text "Mops Geburtstag"
-    }
-    event {
-        date "14. Juni"
-        text \
-"Hörsaalkino Special"
-    }
-    event {
-        date "23. Juni"
+        date "23.6."
         text "Bergfest"
+    }
+    event {
+        date "30.6."
+        text "Ringbahntour"
     }
 }
 
@@ -33,7 +24,7 @@ stations {
     }
     station {
         name "Karl-Ziegler-Str"
-        station_id 900000194016
+        station_id 900194016
         s_bahn false
         tram true
         bus false
@@ -45,7 +36,7 @@ stations {
     }
     station {
         name "Magnusstr."
-        station_id 900000194501
+        station_id 900194501
         s_bahn false
         tram false
         bus true
@@ -54,17 +45,5 @@ stations {
         max_time 24
         min_time_needed 5
         max_departures 5
-    }
-    station {
-        name "Schöneweide FEX"
-        station_id 900000192001
-        s_bahn false
-        tram false
-        bus false
-        express true
-        min_time 15
-        max_time 180
-        min_time_needed 5
-        max_departures 3
     }
 }
