@@ -136,7 +136,7 @@ def fetch_departures(url, max_departures):
     """
     Requests the API for departure information.
     """
-    response = requests.get(url, timeout=30000).json()
+    response = requests.get(url, timeout=5000).json()
     departures = []
     trip_ids = []
     for departure in response['departures']:
@@ -191,8 +191,8 @@ def setup(ctx):
     ctx.config(bg='#141416')
     ctx.create_rectangle(gui_middle, 0, 1280, 1024, fill="#165096", outline="#165096")
     ctx.create_image(gui_middle+100, 100, image=hu_logo_image)
-    clock = ctx.create_text(gui_middle+270, 70, text=datetime.now().strftime('%H:%M'), font=FONT_TITLE_2, fill='#fff')
-    ctx.create_image(gui_middle+150, 500, image=RingbahnImage)
+    clock = ctx.create_text(gui_middle+270, 70, font=FONT_TITLE_2, fill='#fff', text=datetime.now().strftime('%H:%M'), )
+    ctx.create_image(gui_middle+150, 500, image=Ringbahn_Image)
     ctx.create_text(gui_middle+250, 500, text="RINGBAHNTOUR\nSAUFEN\nLETSGOOOOO", fil='#fff')
     #ctx.create_image(1000, 680, image=bike_route_image)
     ctx.pack(fill=tk.BOTH, expand=True)
@@ -235,13 +235,11 @@ image_path = pathlib.Path(__file__).parent.resolve() / "src/images/"
 empty = Image.open(image_path.joinpath("Empty.png")).resize(size=(1,1))
 empty = ImageTk.PhotoImage(empty)
 
-RingbahnImage = ImageTk.PhotoImage(Image.open(image_path.joinpath('Ringbahntour.png')).resize(size=(200, 350)))
+Ringbahn_Image = Image.open(image_path.joinpath('Ringbahntour.png')).resize(size=(200, 350))
+Ringbahn_Image = ImageTk.PhotoImage(Ringbahn_Image)
 
 hu_logo_image = Image.open(image_path.joinpath("Huberlin-logo.png")).resize(size=(100,100))
 hu_logo_image = ImageTk.PhotoImage(hu_logo_image)
-
-bike_route_image = Image.open(image_path.joinpath("bike_route.png")).resize(size=(400,415))
-bike_route_image = ImageTk.PhotoImage(bike_route_image)
 
 images = {
     file.stem: load_image(file)
@@ -264,9 +262,9 @@ def mainloop():  # pylint: disable=missing-function-docstring
         station.departure_list()
     canvas.itemconfig(clock, text=datetime.now().strftime('%H:%M'))
 
-    # Refresh every minute
+    # Refresh every five seconds
     root.after(5_000, mainloop)
 
-# First refresh after 1 second
+# First refresh after five seconds
 root.after(5_000, mainloop)
 root.mainloop()
