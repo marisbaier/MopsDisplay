@@ -1,11 +1,7 @@
 events {
     event {
-        date "23.6."
-        text "Bergfest"
-    }
-    event {
-        date "30.6."
-        text "Ringbahntour"
+        date "22.7."
+        text "Vorlesungsfreie Zeit"
     }
 }
 
@@ -13,11 +9,13 @@ stations {
     station {
         name "S Adlershof"
         station_id 900193002
+        direction1 900193001
+        direction2 900186001
         s_bahn true
         tram false
         bus false
         express false
-        min_time 9
+        min_time 5
         max_time 42
         min_time_needed 11
         max_departures 9
@@ -25,6 +23,8 @@ stations {
     station {
         name "Karl-Ziegler-Str"
         station_id 900194016
+        direction1 900194537
+        direction2 900194501
         s_bahn false
         tram true
         bus true
@@ -37,6 +37,8 @@ stations {
     station {
         name "Magnusstr."
         station_id 900194501
+        direction1 900194016
+        direction2 900194504
         s_bahn false
         tram true
         bus true
