@@ -22,6 +22,8 @@ class Station:
     """
     name: str
     station_id: int
+    direction1: int
+    direction2: int
     s_bahn: bool
     tram: bool
     bus: bool

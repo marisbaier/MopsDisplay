@@ -26,7 +26,7 @@ class OutgoingConnection:
     """
     Displays departure information for a single mode of transport at a single station.
     """
-    def __init__(self, requestjson, ypos):
+    def __init__(self, requestjson, xpos, ypos):
         """
         Upon creation, checks for a correspanding lineimage stored.
         If there"s none, loads an empty image.
@@ -35,7 +35,7 @@ class OutgoingConnection:
         """
         lineimage = resolve_image(requestjson)
 
-        self.image = canvas.create_image(75, ypos, image = lineimage)
+        self.image = canvas.create_image(xpos-40, ypos, image = lineimage)
 
         direct = requestjson["direction"]
         if len(direct) > 35:
@@ -44,8 +44,8 @@ class OutgoingConnection:
 
         self.when_int = calculate_remaining_time(requestjson)
 
-        self.direction = canvas.create_text(75+40, ypos, text=direct, font=FONT_DEFAULT, anchor="w", fill="#fff")
-        self.when = canvas.create_text(540, ypos, text=self.when_int, font=FONT_DEFAULT, anchor="e", fill="#fff")
+        self.direction = canvas.create_text(xpos, ypos, text=direct, font=FONT_DEFAULT, anchor="w", fill="#fff")
+        self.when = canvas.create_text(xpos+175, ypos, text=self.when_int, font=FONT_DEFAULT, anchor="e", fill="#fff")
 
     def change(self, image, direction, when, fill='white'):
         """
@@ -64,9 +64,10 @@ class Station(StationConfig):
     departures: list = field(init=False)
 
     def __post_init__(self):
-        self.departures = []
+        self.departures = [[],[]]
 
-        self.departures.append(canvas.create_text(50, 60+self.display_offset*30, text=self.name,font=FONT_TITLE_2, anchor="w", fill="#fff"))  # pylint: disable=line-too-long
+        self.departures[0].append(canvas.create_text(50, 60+self.display_offset*30, text=self.name,font=FONT_TITLE_2, anchor="w", fill="#fff"))  # pylint: disable=line-too-long
+        self.departures[1].append(canvas.create_text(400, 60+self.display_offset*30, text='',font=FONT_TITLE_2, anchor="w", fill="#fff"))  # pylint: disable=line-too-long
         self.departure_list()
 
 
@@ -80,63 +81,101 @@ class Station(StationConfig):
 
         This is done regularly to keep the displayed information up to date.
         """
-        try:
-            departures = fetch_departures(self.get_url(), self.max_departures)
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.JSONDecodeError, KeyError):
-            self.disable()
-        else:
-            if len(departures)>len(self.departures):
-                add = len(self.departures)
-                for i,departure in enumerate(departures[len(self.departures):-1]):
-                    i += add
-                    connection = OutgoingConnection(departure, ypos=70+(i+self.display_offset)*30)
-                    self.departures.append(connection)
+        departures_direction1 = fetch_departures(self.get_url(self.direction1), self.max_departures)
+        departures_direction2 = fetch_departures(self.get_url(self.direction2), self.max_departures)
 
-            for i,displayedobject in enumerate(self.departures[1:]):
-                if i<len(departures):
-                    departure = departures[i]
-                    time_remaining = calculate_remaining_time(departure)
+        if len(departures_direction1)>len(self.departures[0]):
+            add = len(self.departures[0])
+            for i,departure in enumerate(departures_direction1[len(self.departures[0]):-1]):
+                i += add
+                connection = OutgoingConnection(departure, 115, ypos=70+(i+self.display_offset)*30)
+                self.departures[0].append(connection)
 
-                    direct = departure["direction"]
+        for i,displayedobject in enumerate(self.departures[0][1:]):
+            if i<len(departures_direction1):
+                departure = departures_direction1[i]
+                time_remaining = calculate_remaining_time(departure)
 
-                    if len(direct) > 35:
-                        direct = direct[:35] + "..."
+                try:
+                    direct = line_names[departure['direction']]
+                except KeyError:
+                    direct = departure['direction']
+                    print(direct)
 
+                if direct is None:
+                    direct = '???'
+                elif len(direct) > 35:
+                    direct = direct[:35] + "..."
 
-                    lineimage = resolve_image(departure)
-                    displayedobject.change(lineimage, direct, time_remaining)
+                lineimage = resolve_image(departure)
+                displayedobject.change(lineimage, direct, time_remaining)
 
-                    if time_remaining < self.min_time_needed:
-                        canvas.itemconfig(displayedobject.when, fill="red")
-                    else:
-                        canvas.itemconfig(displayedobject.when, fill="white")
+                if time_remaining < self.min_time_needed:
+                    canvas.itemconfig(displayedobject.when, fill="red")
                 else:
-                    displayedobject.change(empty,"","")
+                    canvas.itemconfig(displayedobject.when, fill="white")
+            else:
+                displayedobject.change(empty,"","")
+
+        if len(departures_direction2)>len(self.departures[1]):
+            add = len(self.departures[1])
+            for i,departure in enumerate(departures_direction2[len(self.departures[1]):-1]):
+                i += add
+                connection = OutgoingConnection(departure, 430, ypos=70+(i+self.display_offset)*30)
+                self.departures[1].append(connection)
+
+        for i,displayedobject in enumerate(self.departures[1][1:]):
+            if i<len(departures_direction2):
+                departure = departures_direction2[i]
+                time_remaining = calculate_remaining_time(departure)
+
+                try:
+                    direct = line_names[departure['direction']]
+                except KeyError:
+                    direct = departure['direction']
+                    print(direct)
+
+                if direct is None:
+                    direct = '???'
+                elif len(direct) > 35:
+                    direct = direct[:35] + "..."
+
+                lineimage = resolve_image(departure)
+                displayedobject.change(lineimage, direct, time_remaining)
+
+                if time_remaining < self.min_time_needed:
+                    canvas.itemconfig(displayedobject.when, fill="red")
+                else:
+                    canvas.itemconfig(displayedobject.when, fill="white")
+            else:
+                displayedobject.change(empty,"","")
 
     def get_departure_count(self):
         """
         Returns the number of departures currently displayed.
         """
-        return len(self.departures)
+        return max(len(self.departures[0]), len(self.departures[1]))
 
-    def get_url(self):
+    def get_url(self, direction):
         """
         Constructs the URL for the API request.
         """
-        return f"https://v6.bvg.transport.rest/stops/{self.station_id}/departures?results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&express={self.express}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"  # pylint: disable=line-too-long
+        return f"https://v6.bvg.transport.rest/stops/{self.station_id}/departures?direction={direction}&results=20&suburban={self.s_bahn}&tram={self.tram}&bus={self.bus}&express={self.express}&when=in+{self.min_time}+minutes&duration={self.max_time-self.min_time}"  # pylint: disable=line-too-long
     
     def disable(self):
         '''
         Hints that departures couldn't be fetched
         '''
-        for outgoingconnection in self.departures[1:]:
+        for outgoingconnection in self.departures[0][1:]:
+            outgoingconnection.change(empty, '''couldn't fetch''', '', fill='grey')
+        for outgoingconnection in self.departures[1][1:]:
             outgoingconnection.change(empty, '''couldn't fetch''', '', fill='grey')
 
 def fetch_departures(url, max_departures):
     """
     Requests the API for departure information.
     """
-    response = requests.get(url, timeout=5000).json()
+    response = session.get(url, timeout=30_000).json()
     departures = []
     trip_ids = []
     for departure in response['departures']:
@@ -165,7 +204,6 @@ def resolve_image(departure):
     """
     Returns the line image for the given line name.
     """
-
     name = departure["line"]["name"]
     admin_code = departure["line"]["adminCode"]
 
@@ -184,7 +222,7 @@ def resolve_image(departure):
 
 def setup(ctx):
     """
-    Sets up the initial canvas state. Display resolution at Mops is 1280x1024
+    Sets up the initial canvas state. Display resolution at Mops is 1280x1024.
     This includes the background, the logo and the event information.
     """
     global clock
@@ -192,9 +230,8 @@ def setup(ctx):
     ctx.create_rectangle(gui_middle, 0, 1280, 1024, fill="#165096", outline="#165096")
     ctx.create_image(gui_middle+100, 100, image=hu_logo_image)
     clock = ctx.create_text(gui_middle+270, 70, font=FONT_TITLE_2, fill='#fff', text=datetime.now().strftime('%H:%M'), )
-    ctx.create_image(gui_middle+150, 500, image=Ringbahn_Image)
-    ctx.create_text(gui_middle+250, 500, text="RINGBAHNTOUR\nSAUFEN\nLETSGOOOOO", fil='#fff')
-    #ctx.create_image(1000, 680, image=bike_route_image)
+    ctx.create_image(gui_middle+175, 475, image=Ringbahn_Image)
+    #ctx.create_text(gui_middle+250, 500, text="RINGBAHNTOUR\nSAUFEN\nLETSGOOOOO", fil='#fff')
     ctx.pack(fill=tk.BOTH, expand=True)
 
     event_display_offset = 250
@@ -229,13 +266,17 @@ root.attributes("-fullscreen", True)
 #root.geometry("1024x768")
 canvas = tk.Canvas()
 
+# https://www.codeproject.com/Questions/1008506/python-requests-package-very-slow-retrieving-html
+session = requests.Session()
+session.trust_env = False
+
 # https://stackoverflow.com/a/3430395
 image_path = pathlib.Path(__file__).parent.resolve() / "src/images/"
 
 empty = Image.open(image_path.joinpath("Empty.png")).resize(size=(1,1))
 empty = ImageTk.PhotoImage(empty)
 
-Ringbahn_Image = Image.open(image_path.joinpath('Ringbahntour.png')).resize(size=(200, 350))
+Ringbahn_Image = Image.open(image_path.joinpath('1.jpg')).resize(size=(250, 250))
 Ringbahn_Image = ImageTk.PhotoImage(Ringbahn_Image)
 
 hu_logo_image = Image.open(image_path.joinpath("Huberlin-logo.png")).resize(size=(100,100))
@@ -244,6 +285,25 @@ hu_logo_image = ImageTk.PhotoImage(hu_logo_image)
 images = {
     file.stem: load_image(file)
     for file in (image_path).glob("*.png")
+}
+
+line_names = {
+    'S Spandau Bhf (Berlin)': 'Spandau',
+    'S Grünau (Berlin)': 'Grünau',
+    'S+U Pankow (Berlin)': 'Pankow',
+    'S Birkenwerder Bhf': 'Birkenwerder',
+    'S+U Tempelhof (Berlin)': 'Tempelhof',
+    'S Südkreuz Bhf (Berlin)': 'Südkreuz',
+    'Flughafen BER - Terminal 1-2': 'Flughafen BER',
+    'Flughafen BER Terminal 5': 'Flughafen T. 5',
+    'S Königs Wusterhausen Bhf': 'K. W.',
+    '1|36572|1|86|1072023': 'Alexanderplatz',
+    'Landschaftspark Johannisthal': 'Johannisthal',
+    'Krankenhaus Köpenick': 'Köpenick',
+    'S Westend (Berlin)': 'Westend',
+    'Mahlsdorf, Rahnsdorfer Str.': 'Mahlsdorf',
+    'Rahnsdorf/Waldschänke': 'Rahnsdorf',
+    'Schloßplatz Köpenick': 'Köpenick'
 }
 
 setup(canvas)
@@ -259,7 +319,10 @@ for idx, station_config in enumerate(station_configs):
 
 def mainloop():  # pylint: disable=missing-function-docstring
     for station in stations:
-        station.departure_list()
+        try:
+            station.departure_list()
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.JSONDecodeError, KeyError):
+            station.disable()
     canvas.itemconfig(clock, text=datetime.now().strftime('%H:%M'))
 
     # Refresh every five seconds
