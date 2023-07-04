@@ -276,7 +276,7 @@ image_path = pathlib.Path(__file__).parent.resolve() / "src/images/"
 empty = Image.open(image_path.joinpath("Empty.png")).resize(size=(1,1))
 empty = ImageTk.PhotoImage(empty)
 
-Ringbahn_Image = Image.open(image_path.joinpath('1.jpg')).resize(size=(250, 250))
+Ringbahn_Image = Image.open(image_path.joinpath('1.jpg')).resize(size=(240,240))
 Ringbahn_Image = ImageTk.PhotoImage(Ringbahn_Image)
 
 hu_logo_image = Image.open(image_path.joinpath("Huberlin-logo.png")).resize(size=(100,100))
