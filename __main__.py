@@ -88,7 +88,7 @@ class Station(StationConfig):
             add = len(self.departures[0])
             for i,departure in enumerate(departures_direction1[len(self.departures[0]):-1]):
                 i += add
-                connection = OutgoingConnection(departure, 115, ypos=70+(i+self.display_offset)*30)
+                connection = OutgoingConnection(departure, 100, ypos=70+(i+self.display_offset)*30)
                 self.departures[0].append(connection)
 
         for i,displayedobject in enumerate(self.departures[0][1:]):
@@ -121,7 +121,7 @@ class Station(StationConfig):
             add = len(self.departures[1])
             for i,departure in enumerate(departures_direction2[len(self.departures[1]):-1]):
                 i += add
-                connection = OutgoingConnection(departure, 430, ypos=70+(i+self.display_offset)*30)
+                connection = OutgoingConnection(departure, 400, ypos=70+(i+self.display_offset)*30)
                 self.departures[1].append(connection)
 
         for i,displayedobject in enumerate(self.departures[1][1:]):
@@ -204,7 +204,10 @@ def resolve_image(departure):
     """
     Returns the line image for the given line name.
     """
-    name = departure["line"]["name"]
+    if departure["line"]["name"] is None:
+        name = '???'
+    else:
+        name = departure["line"]["name"]
     admin_code = departure["line"]["adminCode"]
 
     if name in images:
@@ -303,7 +306,9 @@ line_names = {
     'S Westend (Berlin)': 'Westend',
     'Mahlsdorf, Rahnsdorfer Str.': 'Mahlsdorf',
     'Rahnsdorf/Waldschänke': 'Rahnsdorf',
-    'Schloßplatz Köpenick': 'Köpenick'
+    'Schloßplatz Köpenick': 'Köpenick',
+    'S Wildau': 'Wildau',
+    'S+U Friedrichstr. Bhf (Berlin)': 'Friedrichsstraße'
 }
 
 setup(canvas)
@@ -321,7 +326,7 @@ def mainloop():  # pylint: disable=missing-function-docstring
     for station in stations:
         try:
             station.departure_list()
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.JSONDecodeError, KeyError):
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.JSONDecodeError, KeyError, TypeError):
             station.disable()
     canvas.itemconfig(clock, text=datetime.now().strftime('%H:%M'))
 
