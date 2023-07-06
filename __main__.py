@@ -308,7 +308,9 @@ line_names = {
     'Rahnsdorf/Waldschänke': 'Rahnsdorf',
     'Schloßplatz Köpenick': 'Köpenick',
     'S Wildau': 'Wildau',
-    'S+U Friedrichstr. Bhf (Berlin)': 'Friedrichsstraße'
+    'S+U Friedrichstr. Bhf (Berlin)': 'Friedrichsstraße',
+    'S Ostbahnhof (Berlin)': 'Ostbahnhof',
+    'S Blankenburg (Berlin)': 'Blankenburg'
 }
 
 setup(canvas)
