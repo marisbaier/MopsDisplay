@@ -10,6 +10,7 @@ from datetime import datetime
 import pathlib
 import re
 import tkinter as tk
+import json
 
 from dateutil import parser as dateparser
 from PIL import ImageTk, Image
@@ -45,7 +46,7 @@ class OutgoingConnection:
         self.when_int = calculate_remaining_time(requestjson)
 
         self.direction = canvas.create_text(xpos, ypos, text=direct, font=FONT_DEFAULT, anchor="w", fill="#fff")
-        self.when = canvas.create_text(xpos+175, ypos, text=self.when_int, font=FONT_DEFAULT, anchor="e", fill="#fff")
+        self.when = canvas.create_text(xpos+190, ypos, text=self.when_int, font=FONT_DEFAULT, anchor="e", fill="#fff")
 
     def change(self, image, direction, when, fill='white'):
         """
@@ -66,7 +67,7 @@ class Station(StationConfig):
     def __post_init__(self):
         self.departures = [[],[]]
 
-        self.departures[0].append(canvas.create_text(50, 60+self.display_offset*30, text=self.name,font=FONT_TITLE_2, anchor="w", fill="#fff"))  # pylint: disable=line-too-long
+        self.departures[0].append(canvas.create_text(40, 60+self.display_offset*30, text=self.name,font=FONT_TITLE_2, anchor="w", fill="#fff"))  # pylint: disable=line-too-long
         self.departures[1].append(canvas.create_text(400, 60+self.display_offset*30, text='',font=FONT_TITLE_2, anchor="w", fill="#fff"))  # pylint: disable=line-too-long
         self.departure_list()
 
@@ -88,7 +89,7 @@ class Station(StationConfig):
             add = len(self.departures[0])
             for i,departure in enumerate(departures_direction1[len(self.departures[0]):-1]):
                 i += add
-                connection = OutgoingConnection(departure, 100, ypos=70+(i+self.display_offset)*30)
+                connection = OutgoingConnection(departure, 100, ypos=75+(i+self.display_offset)*30)
                 self.departures[0].append(connection)
 
         for i,displayedobject in enumerate(self.departures[0][1:]):
@@ -274,7 +275,8 @@ session = requests.Session()
 session.trust_env = False
 
 # https://stackoverflow.com/a/3430395
-image_path = pathlib.Path(__file__).parent.resolve() / "src/images/"
+path = pathlib.Path(__file__).parent.resolve()
+image_path = path / "src/images/"
 
 empty = Image.open(image_path.joinpath("Empty.png")).resize(size=(1,1))
 empty = ImageTk.PhotoImage(empty)
@@ -290,28 +292,7 @@ images = {
     for file in (image_path).glob("*.png")
 }
 
-line_names = {
-    'S Spandau Bhf (Berlin)': 'Spandau',
-    'S Grünau (Berlin)': 'Grünau',
-    'S+U Pankow (Berlin)': 'Pankow',
-    'S Birkenwerder Bhf': 'Birkenwerder',
-    'S+U Tempelhof (Berlin)': 'Tempelhof',
-    'S Südkreuz Bhf (Berlin)': 'Südkreuz',
-    'Flughafen BER - Terminal 1-2': 'Flughafen BER',
-    'Flughafen BER Terminal 5': 'Flughafen T. 5',
-    'S Königs Wusterhausen Bhf': 'K. W.',
-    '1|36572|1|86|1072023': 'Alexanderplatz',
-    'Landschaftspark Johannisthal': 'Johannisthal',
-    'Krankenhaus Köpenick': 'Köpenick',
-    'S Westend (Berlin)': 'Westend',
-    'Mahlsdorf, Rahnsdorfer Str.': 'Mahlsdorf',
-    'Rahnsdorf/Waldschänke': 'Rahnsdorf',
-    'Schloßplatz Köpenick': 'Köpenick',
-    'S Wildau': 'Wildau',
-    'S+U Friedrichstr. Bhf (Berlin)': 'Friedrichsstraße',
-    'S Ostbahnhof (Berlin)': 'Ostbahnhof',
-    'S Blankenburg (Berlin)': 'Blankenburg'
-}
+line_names = json.load(open(path / "line_names.json", encoding='utf-8'))
 
 setup(canvas)
 
@@ -320,9 +301,23 @@ station_display_offset = 0
 
 for idx, station_config in enumerate(station_configs):
     if idx > 0:
-        station_display_offset += stations[idx-1].get_departure_count() + 1
+        station_display_offset += stations[idx-1].get_departure_count() + 1.5
 
     stations.append(Station(**asdict(station_config), display_offset=station_display_offset))
+
+#black = canvas.create_rectangle(0,0,1280,1024,fill='#000000', outline='#FFFFFF')
+awareness = Image.open(image_path.joinpath("Awareness-Aushang-1.png")).resize(size=(1050,700))
+awareness = ImageTk.PhotoImage(awareness)
+awarenesspic = canvas.create_image(0,0,image=awareness, anchor='nw')
+""" background_image = ImageTk.PhotoImage(file="Awareness-Aushang-1.png")
+background_label = tk.Label(root, image=background_image)
+background_label.pack() """
+""" duck = Image.open(image_path.joinpath("dancing_duck.gif"))
+duck = ImageTk.PhotoImage(duck)
+canvas.create_image(gui_middle-100, 500, image=duck) """
+
+""" frameCnt = 12
+frames = [ImageTk.PhotoImage(file='dancing_duck.gif',format = 'gif -index %i' %(i)) for i in range(frameCnt)] """
 
 def mainloop():  # pylint: disable=missing-function-docstring
     for station in stations:
@@ -332,9 +327,25 @@ def mainloop():  # pylint: disable=missing-function-docstring
             station.disable()
     canvas.itemconfig(clock, text=datetime.now().strftime('%H:%M'))
 
+    global awareness, awarenesspic
+    if int(datetime.now().strftime('%M')) % 2 == 0:
+        canvas.delete(awarenesspic)
+    else:
+        awarenesspic = canvas.create_image(0,0,image=awareness, anchor='nw')
+
     # Refresh every five seconds
     root.after(5_000, mainloop)
 
+""" def gifloop(ind):
+    frame = frames[ind]
+    ind += 1
+    if ind == frameCnt:
+        ind = 0
+    label.configure(image=frame)
+    root.after(100, gifloop, ind) """
+
 # First refresh after five seconds
 root.after(5_000, mainloop)
+#root.after(100, gifloop)
+
 root.mainloop()
