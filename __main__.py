@@ -306,7 +306,7 @@ for idx, station_config in enumerate(station_configs):
     stations.append(Station(**asdict(station_config), display_offset=station_display_offset))
 
 #black = canvas.create_rectangle(0,0,1280,1024,fill='#000000', outline='#FFFFFF')
-awareness = Image.open(image_path.joinpath("Awareness-Aushang-1.png")).resize(size=(1050,700))
+awareness = Image.open(image_path.joinpath("Awareness-Aushang-1.png")).resize(size=(1400,850))
 awareness = ImageTk.PhotoImage(awareness)
 awarenesspic = canvas.create_image(0,0,image=awareness, anchor='nw')
 """ background_image = ImageTk.PhotoImage(file="Awareness-Aushang-1.png")
