@@ -1,7 +1,7 @@
 events {
     event {
-        date "22.7."
-        text "Vorlesungsfreie Zeit"
+        date "20.10."
+        text "Semesterauftaktsparty"
     }
 }
 
@@ -18,7 +18,7 @@ stations {
         min_time 8
         max_time 42
         min_time_needed 11
-        max_departures 9
+        max_departures 7
     }
     station {
         name "Karl-Ziegler-Str"
