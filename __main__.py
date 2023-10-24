@@ -305,20 +305,6 @@ for idx, station_config in enumerate(station_configs):
 
     stations.append(Station(**asdict(station_config), display_offset=station_display_offset))
 
-#black = canvas.create_rectangle(0,0,1280,1024,fill='#000000', outline='#FFFFFF')
-awareness = Image.open(image_path.joinpath("Awareness-Aushang-1.png")).resize(size=(1200,850))
-awareness = ImageTk.PhotoImage(awareness)
-awarenesspic = canvas.create_image(0,0,image=awareness, anchor='nw')
-""" background_image = ImageTk.PhotoImage(file="Awareness-Aushang-1.png")
-background_label = tk.Label(root, image=background_image)
-background_label.pack() """
-""" duck = Image.open(image_path.joinpath("dancing_duck.gif"))
-duck = ImageTk.PhotoImage(duck)
-canvas.create_image(gui_middle-100, 500, image=duck) """
-
-""" frameCnt = 12
-frames = [ImageTk.PhotoImage(file='dancing_duck.gif',format = 'gif -index %i' %(i)) for i in range(frameCnt)] """
-
 def mainloop():  # pylint: disable=missing-function-docstring
     for station in stations:
         try:
@@ -327,25 +313,10 @@ def mainloop():  # pylint: disable=missing-function-docstring
             station.disable()
     canvas.itemconfig(clock, text=datetime.now().strftime('%H:%M'))
 
-    global awareness, awarenesspic
-    if int(datetime.now().strftime('%M')) % 2 == 0:
-        canvas.delete(awarenesspic)
-    else:
-        awarenesspic = canvas.create_image(0,0,image=awareness, anchor='nw')
-
     # Refresh every five seconds
     root.after(5_000, mainloop)
 
-""" def gifloop(ind):
-    frame = frames[ind]
-    ind += 1
-    if ind == frameCnt:
-        ind = 0
-    label.configure(image=frame)
-    root.after(100, gifloop, ind) """
-
 # First refresh after five seconds
 root.after(5_000, mainloop)
-#root.after(100, gifloop)
 
 root.mainloop()
