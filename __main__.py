@@ -19,9 +19,9 @@ import requests
 from config import events as event_configs, stations as station_configs, Station as StationConfig
 
 
-FONT_DEFAULT = ("Helvetica", 14, "bold")
-FONT_TITLE_2 = ("Helvetica", 24, "bold")
-gui_middle = 768/1.17
+FONT_DEFAULT = ("Helvetica", 17, "bold")
+FONT_TITLE_2 = ("Helvetica", 28, "bold")
+gui_middle = 1280*0.618
 
 class OutgoingConnection:
     """
@@ -46,7 +46,7 @@ class OutgoingConnection:
         self.when_int = calculate_remaining_time(requestjson)
 
         self.direction = canvas.create_text(xpos, ypos, text=direct, font=FONT_DEFAULT, anchor="w", fill="#fff")
-        self.when = canvas.create_text(xpos+190, ypos, text=self.when_int, font=FONT_DEFAULT, anchor="e", fill="#fff")
+        self.when = canvas.create_text(xpos+250, ypos, text=self.when_int, font=FONT_DEFAULT, anchor="e", fill="#fff")
 
     def change(self, image, direction, when, fill='white'):
         """
@@ -122,7 +122,7 @@ class Station(StationConfig):
             add = len(self.departures[1])
             for i,departure in enumerate(departures_direction2[len(self.departures[1]):-1]):
                 i += add
-                connection = OutgoingConnection(departure, 400, ypos=70+(i+self.display_offset)*30)
+                connection = OutgoingConnection(departure, 470, ypos=70+(i+self.display_offset)*30)
                 self.departures[1].append(connection)
 
         for i,displayedobject in enumerate(self.departures[1][1:]):
@@ -234,7 +234,8 @@ def setup(ctx):
     ctx.create_rectangle(gui_middle, 0, 1280, 1024, fill="#165096", outline="#165096")
     ctx.create_image(gui_middle+100, 100, image=hu_logo_image)
     clock = ctx.create_text(gui_middle+270, 70, font=FONT_TITLE_2, fill='#fff', text=datetime.now().strftime('%H:%M'), )
-    ctx.create_image(gui_middle+175, 475, image=Ringbahn_Image)
+    #ctx.create_image(gui_middle+175, 475, image=Ringbahn_Image)
+    ctx.create_image(gui_middle+50, 335, image=Doko_Image, anchor="nw")
     #ctx.create_text(gui_middle+250, 500, text="RINGBAHNTOUR\nSAUFEN\nLETSGOOOOO", fil='#fff')
     ctx.pack(fill=tk.BOTH, expand=True)
 
@@ -283,6 +284,9 @@ empty = ImageTk.PhotoImage(empty)
 
 Ringbahn_Image = Image.open(image_path.joinpath('1.jpg')).resize(size=(240,240))
 Ringbahn_Image = ImageTk.PhotoImage(Ringbahn_Image)
+
+Doko_Image = Image.open(image_path.joinpath('doko_plakat.png')).resize(size=(320,445))
+Doko_Image = ImageTk.PhotoImage(Doko_Image)
 
 hu_logo_image = Image.open(image_path.joinpath("Huberlin-logo.png")).resize(size=(100,100))
 hu_logo_image = ImageTk.PhotoImage(hu_logo_image)
