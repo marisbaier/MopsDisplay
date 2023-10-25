@@ -235,7 +235,7 @@ def setup(ctx):
     ctx.create_image(gui_middle+100, 100, image=hu_logo_image)
     clock = ctx.create_text(gui_middle+270, 70, font=FONT_TITLE_2, fill='#fff', text=datetime.now().strftime('%H:%M'), )
     #ctx.create_image(gui_middle+175, 475, image=Ringbahn_Image)
-    ctx.create_image(gui_middle+50, 335, image=Doko_Image, anchor="nw")
+    ctx.create_image(gui_middle+50, 350, image=Doko_Image, anchor="nw")
     #ctx.create_text(gui_middle+250, 500, text="RINGBAHNTOUR\nSAUFEN\nLETSGOOOOO", fil='#fff')
     ctx.pack(fill=tk.BOTH, expand=True)
 

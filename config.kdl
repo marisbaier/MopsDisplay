@@ -1,5 +1,9 @@
 events {
     event {
+        date "26.10. 17:30"
+        text "Hörsaalkino: Wall-E"
+    }
+    event {
         date "16.11."
         text "Doppelkopfturnier"
     }
