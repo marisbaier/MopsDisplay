@@ -4,6 +4,14 @@ events {
         text "Hörsaalkino: Wall-E"
     }
     event {
+        date "31.10."
+        text "Hörsaalkino: Evil Dead Rise"
+    }
+    event {
+        date "02.11."
+        text "Hörsaalkino: Sunshine"
+    }
+    event {
         date "16.11."
         text "Doppelkopfturnier"
     }
