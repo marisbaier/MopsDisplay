@@ -1,9 +1,5 @@
 events {
     event {
-        date "26.10."
-        text "Hörsaalkino: Wall-E"
-    }
-    event {
         date "31.10."
         text "Hörsaalkino: Evil Dead Rise"
     }
