@@ -24,9 +24,9 @@ stations {
         bus false
         express false
         min_time 8
-        max_time 42
+        max_time 300
         min_time_needed 11
-        max_departures 7
+        max_departures 15
     }
     station {
         name "Karl-Ziegler-Str"
@@ -38,9 +38,9 @@ stations {
         bus true
         express false
         min_time 3
-        max_time 28
+        max_time 40
         min_time_needed 5
-        max_departures 5
+        max_departures 6
     }
     station {
         name "Magnusstr."
@@ -52,8 +52,8 @@ stations {
         bus true
         express false
         min_time 3
-        max_time 24
+        max_time 40
         min_time_needed 5
-        max_departures 5
+        max_departures 6
     }
 }
