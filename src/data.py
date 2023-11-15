@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Iterator, List, Union
 from dateutil import parser as dateparser
 from PIL.ImageTk import PhotoImage
+import grequests
 import requests
 from . import debug
 
@@ -55,9 +56,10 @@ class DirectionsAndProducts:
 
     Attributes
     ----------
-    directions: list[str]
+    directions: list[str], optional
         List of station ids. A direction of a departure is given as the station
-        id of a station it stops at after departing.
+        id of a station it stops at after departing. 
+        Defaults to [None], corresponds to all possible directions.
     S: bool, optional
         Wether to fetch suburban lines (S-Bahn). Defaults to False
     U: bool, optional
@@ -74,7 +76,7 @@ class DirectionsAndProducts:
         Wether to fetch regional lines (RE/RB). Defaults to False
     """
 
-    directions: list[str]
+    directions: list[str] = None
     S: bool = False
     U: bool = False
     T: bool = False
@@ -139,6 +141,38 @@ class Station:
     day: DirectionsAndProducts = None
     night: DirectionsAndProducts = None
 
+    def __post_init__(self):
+        # prepare api urls for day time
+        day_urls = []
+        if self.day is not None:
+            day_urls = [self._get_url(self.day, drct)
+                             for drct in self.day.directions]
+        object.__setattr__(self, "day_urls", day_urls)
+
+        # prepare api urls for night time
+        night_urls = []
+        if self.night is not None:
+            night_urls = [self._get_url(self.night, drct)
+                               for drct in self.night.directions]
+        object.__setattr__(self, "night_urls", night_urls)
+
+    def _get_url(self, dap: DirectionsAndProducts, direction: str=None) -> Iterator[str]:
+        """Get BVG API url"""
+        url = (
+            f"https://v6.bvg.transport.rest/stops/{self.id}/departures?"
+            f"when=in+{self.min_time}+minutes&"
+            f"duration={self.max_time-self.min_time}&"
+            f"results={self.max_departures}&"
+            f"suburban={dap.S}&"
+            f"subway={dap.U}&"
+            f"tram={dap.T}&"
+            f"bus={dap.B}&"
+            f"ferry={dap.F}&"
+            f"express={dap.E}&"
+            f"regional={dap.R}"
+        )
+        return url if direction is None else url + f"&direction={direction}"
+
     @property
     def is_night(self) -> bool:
         """Return True if night options should be active"""
@@ -147,57 +181,49 @@ class Station:
         now = datetime.now()
         return time_is_between(start, now, stop)
 
-    def get_urls(self) -> Iterator[str]:
-        """Get BVG API url for every direction"""
-        dap = self.night if self.is_night else self.day
-        if dap is None:
-            return []
-
-        for direction in dap.directions:
-            yield (
-                f"https://v6.bvg.transport.rest/stops/{self.id}/departures?"
-                f"direction={direction}&"
-                f"when=in+{self.min_time}+minutes&"
-                f"duration={self.max_time-self.min_time}&"
-                f"results={self.max_departures}&"
-                f"suburban={dap.S}&"
-                f"subway={dap.U}&"
-                f"tram={dap.T}&"
-                f"bus={dap.B}&"
-                f"ferry={dap.F}&"
-                f"express={dap.E}&"
-                f"regional={dap.R}"
-            )
-
+    @FETCH_DEPARTURE_TIMER
     def fetch_departures(self) -> List[Departure]:
         """Fetch departures from BVG API"""
 
+        # pick urls
+        if self.is_night:
+            urls = self.night_urls
+        else:
+            urls = self.day_urls
+
+        # send asynchronous requests
+        requests = (grequests.get(url, session=session, timeout=30_000) 
+                    for url in urls)
+        responses = grequests.imap(requests)
+
+        # collect departues from responses
         departures = []
-        for url in self.get_urls():
-            for departure_data in self._fetch_raw_departure_data(url):
+        for response in responses:
+            # try decoding response
+            try:
+                data = response.json()
+            except requests.exceptions.JSONDecodeError as e:
+                continue
+
+            for departure_data in data.get("departures", []):
+                # try extracting departure information from decoded response
                 try:
                     departure = self._create_departure(departure_data)
                 except Exception as e:
+                    # report unconsidered errors
                     print(departure_data)
-                    raise e
+                    print(e)
+
                 if departure is None:
                     continue
                 departures.append(departure)
+
         # do not use heapq.merge(), because it uses __eq__ (reserved for
         # Departure id comparison). sort() supposedly competes in speed by
         # detection of order trends: https://stackoverflow.com/a/38340755
         departures = list(dict.fromkeys(departures))  # duplicate filter
-        departures.sort()
+        departures.sort() # concatenated responses are not ordered
         return departures
-
-    @FETCH_DEPARTURE_TIMER
-    def _fetch_raw_departure_data(self, url: str):
-        response = session.get(url, timeout=30_000)
-        try:
-            data = response.json()
-        except requests.exceptions.JSONDecodeError:
-            data = {"departures": []}
-        return data.get("departures", [])
 
     def _create_departure(self, data: dict) -> Union[Departure, None]:
         """Departure factory, return None if data has an error"""

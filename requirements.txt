@@ -1,4 +1,4 @@
 Pillow==9.5.0
-Requests==2.30.0
+grequests==0.7.0
 python-dateutil==2.8.2
 kdl-py==1.1.0
