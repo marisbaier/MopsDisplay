@@ -1,0 +1,196 @@
+events {
+    /*
+    event {
+        date "Any time, really"
+        desc "event description"
+    } 
+    */
+    event {
+        date "16.11."
+        desc "Doppelkopfturnier"
+    }
+    event {
+        date "24.11."
+        desc "Ringbahntour der Physik"
+    }
+}
+
+
+posters {
+    /*
+    poster {
+        /* path must be relative to repository/data/posters */
+        images (poster)"path" (poster)"path" ...
+    }
+    */
+    poster {
+        images (poster)"ringbahn0.jpg" (poster)"doko_plakat.png"
+    }
+}
+
+
+stations {
+    /* station S Adlershof, towards north */
+    station { 
+        /* station position in the canvas grid */
+        row (u8)0
+        col (u8)0
+
+        title "S Adlershof"
+        id "900193002"
+        max_departures (u8)10
+
+        /* time given in minutes */
+        min_time 8 /* min time left for fetched departures */
+        max_time 90 /* max time left for fetched departures */
+        time_needed 11 /* min time needed to reach station */
+
+        /* time given in HH:MM:SS */
+        start_night "23:59:00" /* start of night time */
+        stop_night  "05:00:00" /* stop of night time */
+
+        day { /* fetch during day time */
+            directions "900193001"
+            S true  /* suburban, S-Bahn */
+            U false /* subway U-Bahn */
+            T false /* tram */
+            B false /* bus */
+            F false /* ferry */
+            E false /* express, IC/ICE */
+            R false /* regional, RE/RB */
+        }
+        night { /* fetch during night time */
+            directions "900193001" "900192512" "900193504" "900193500"
+            S true  /* suburban, S-Bahn */
+            U false /* subway U-Bahn */
+            T false /* tram */
+            B true  /* bus */
+            F false /* ferry */
+            E false /* express, IC/ICE */
+            R false /* regional, RE/RB */
+        }
+    }
+    /* station S Adlershof, towards south */
+    station {
+        row (u8)0
+        col (u8)1
+        title ""
+        id "900193002"
+        max_departures (u8)10
+
+        min_time 8
+        max_time 90
+        time_needed 11
+
+        start_night "23:59:00"
+        stop_night  "05:00:00"
+
+        day {
+            directions "900195510" "900186001"
+            S true
+        }
+        night {
+            directions "900195510" "900186001" "900194504"
+            S true
+            B true
+        }
+    }
+
+    /* station Karl-Ziegler-Str., towards S Adlershof */
+    station {
+        row (u8)1
+        col (u8)0
+        title "Karl-Ziegler-Str."
+        id "900194016"
+        max_departures (u8)5
+
+        min_time 3
+        max_time 90
+        time_needed 5
+
+        start_night "03:00:00"
+        stop_night  "04:00:00"
+
+        day { /* fetch during day time */
+            directions "900193002"
+            T true
+            B true
+        }
+        /* no night serice available */
+    }
+    /* station Karl-Ziegler-Str., towards S Schöneweide */
+    station {
+        row (u8)1
+        col (u8)1
+        title ""
+        id "900194016"
+        max_departures (u8)5
+
+        min_time 3
+        max_time 90
+        time_needed 5
+
+        start_night "23:59:00"
+        stop_night  "05:00:00"
+
+        day { /* fetch during day time */
+            directions "900194537"
+            T true
+            B true
+        }
+        /* no night service available */
+    }
+
+    /* station Magnusstr., towards S Adlershof*/
+    station {
+        row (u8)2
+        col (u8)0
+        title "Magnusstr."
+        id "900194501"
+        max_departures (u8)5
+
+        min_time 3
+        max_time 90
+        time_needed 5
+
+        start_night "23:59:00"
+        stop_night  "05:00:00"
+
+        day { /* fetch during day time */
+            directions "900194504"
+            T true
+            B true
+        }
+        night { /* fetch during night time */
+            directions "900194504"
+            T true
+            B true 
+        }
+    }
+    /* station Magnusstr., towards Rudow/BER/S Schöneweide */
+    station {
+        row (u8)2
+        col (u8)1
+        title ""
+        id "900194501"
+        max_departures (u8)5
+
+        min_time 3
+        max_time 90
+        time_needed 5
+
+        start_night "23:59:00"
+        stop_night  "05:00:00"
+
+        day { /* fetch during day time */
+            directions "900194016" "900194015"
+            T true
+            B true
+        }
+        night { /* fetch during night time */
+            directions "900194015"
+            T true
+            B true 
+        }
+    }
+}
