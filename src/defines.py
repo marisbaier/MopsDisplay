@@ -37,7 +37,7 @@ WIDTH_TIME = FONT_DEPARTURE.measure("00")  # space for MM time format
 # information sizes
 # -----------------
 WIDTH_DATE = FONT_EVENT.measure("00.00.")  # space for DD.MM. date format
-HEIGHT_POSTER = 550
+HEIGHT_POSTER = 350
 WIDTH_POSTER = 450
 HEIGHT_LOGO = 150
 WIDTH_LOGO = 450

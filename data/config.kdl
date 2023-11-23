@@ -6,12 +6,24 @@ events {
     } 
     */
     event {
-        date "16.11."
-        desc "Doppelkopfturnier"
-    }
-    event {
         date "24.11."
         desc "Ringbahntour der Physik"
+    }
+    event {
+        date "02.12."
+        desc "Karaoke Informatik"
+    }
+    event {
+        date "08.12."
+        desc "Weihfei Informatik"
+    }
+    event {
+        date "09.12."
+        desc "Weihfei Psychology"
+    }
+    event {
+        date "15.12."
+        desc "Weihfei Physik"
     }
 }
 
@@ -24,7 +36,7 @@ posters {
     }
     */
     poster {
-        images (poster)"ringbahn0.jpg" (poster)"doko_plakat.png"
+        images (poster)"ringbahn0.jpg"
     }
 }
 
@@ -38,7 +50,7 @@ stations {
 
         title "S Adlershof"
         id "900193002"
-        max_departures (u8)10
+        max_departures (u8)8
 
         /* time given in minutes */
         min_time 8 /* min time left for fetched departures */
@@ -76,7 +88,7 @@ stations {
         col (u8)1
         title ""
         id "900193002"
-        max_departures (u8)10
+        max_departures (u8)8
 
         min_time 8
         max_time 90
