@@ -1,0 +1,15 @@
+S Adlershof: 900193002
+Magnusstr.: 900194501 (M17/61/63)
+Karl-Ziegler-Str.: 900194016 (M17/61/63)
+
+Altglienicke: 900195510 (S9/S45)
+Grünau: 900186001 (S8/S85/S46)
+Johannistal: 900193001 (S45/46/S8/S85/S9)
+
+Grimaustr.: 900192512 (N60)
+Anna-Seghers-Str.: 900193504 (N64)
+Otto-Franke-Str.: 900193500 (N68)
+
+Walther-Nerst-Str.: 900194504 (162/163/164/N60/M17/61/63)
+Rudower Chausee/Wegedornstr.: 900194015 (162/163/164/N60)
+Landschaftspark Johannistal: 900194537 (M17/61/64)
