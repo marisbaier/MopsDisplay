@@ -175,5 +175,5 @@ def main():
 
 if __name__ == "__main__":
     root.geometry(f"{d.WIDTH_ROOT}x{d.HEIGHT_ROOT}")
-    # root.attributes("-fullscreen", True)
+    root.attributes("-fullscreen", True)
     main()
